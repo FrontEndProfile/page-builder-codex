@@ -1,0 +1,9 @@
+<div class="preview" *ngIf="page">
+  <style>{{ hoverStyles }}</style>
+  <div
+    class="preview__canvas"
+    [ngStyle]="{\n      background: page.settings.baseBg,\n      color: page.settings.baseTextColor,\n      fontFamily: page.settings.primaryFont\n    }"
+  >
+    <app-node-renderer [node]="page.root" [preview]="true"></app-node-renderer>
+  </div>
+</div>

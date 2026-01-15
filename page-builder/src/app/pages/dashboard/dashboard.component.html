@@ -1,0 +1,54 @@
+<div class="dashboard app-page">
+  <header class="dashboard__hero">
+    <div class="dashboard__hero-content">
+      <h1>Page Builder Dashboard</h1>
+      <p>Organize projects and pages with LocalStorage persistence.</p>
+    </div>
+    <div class="dashboard__hero-card">
+      <label>Project name</label>
+      <input [(ngModel)]="projectName" placeholder="New project name" />
+      <button type="button" (click)="createProject()">Create Project</button>
+    </div>
+  </header>
+
+  <section class="dashboard__projects">
+    <h2>Projects</h2>
+    <div class="project" *ngFor="let project of projects">
+      <div class="project__header">
+        <div>
+          <h3>{{ project.name }}</h3>
+          <span>{{ project.pages.length }} pages</span>
+        </div>
+      </div>
+
+      <div class="project__create-page">
+        <input
+          [(ngModel)]="pageNameByProject[project.id]"
+          placeholder="New page name"
+        />
+        <button type="button" (click)="createPage(project.id)">Add Page</button>
+      </div>
+
+      <div class="project__pages" *ngIf="project.pages.length; else empty">
+        <div class="page" *ngFor="let page of project.pages">
+          <div>
+            <h4>{{ page.name }}</h4>
+            <span>Updated {{ page.updatedAt | date: 'medium' }}</span>
+          </div>
+          <div class="page__actions">
+            <button type="button" (click)="openBuilder(project.id, page.id)">Open Builder</button>
+            <a class="link" [routerLink]="['/preview', project.id, page.id]">Preview</a>
+            <button type="button" (click)="duplicatePage(project.id, page.id)">Duplicate</button>
+            <button type="button" class="danger" (click)="deletePage(project.id, page.id)">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #empty>
+        <p class="project__empty">No pages yet. Add your first page.</p>
+      </ng-template>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,66 @@
+<div class="builder app-page" *ngIf="page">
+  <header class="builder__topbar">
+    <div class="topbar__title">
+      <h2>{{ page.name }}</h2>
+      <span>Last updated {{ page.updatedAt | date: 'short' }}</span>
+    </div>
+    <div class="topbar__actions">
+      <button type="button" (click)="save()">Save</button>
+      <button type="button" [disabled]="!canUndo" (click)="undo()">Undo</button>
+      <button type="button" [disabled]="!canRedo" (click)="redo()">Redo</button>
+      <button type="button" (click)="openPreview()">Preview</button>
+      <button type="button" (click)="showExportModal = true">Export</button>
+      <button type="button" (click)="exportJson()">Export JSON</button>
+      <label class="import-button">
+        Import JSON
+        <input type="file" accept="application/json" (change)="handleImportFile($event)" />
+      </label>
+    </div>
+  </header>
+
+  <div class="builder__layout">
+    <aside class="builder__sidebar">
+      <h3>Component Library</h3>
+      <div class="library">
+        <div class="library__item" *ngFor="let item of library">
+          <div>
+            <strong>{{ item.label }}</strong>
+            <p>{{ item.description }}</p>
+          </div>
+          <button type="button" (click)="addNode(item.type)">Add</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="builder__canvas" (click)="builder.selectNode(null)">
+      <div
+        class="canvas__inner"
+        [ngStyle]="{\n          background: page.settings.baseBg,\n          color: page.settings.baseTextColor,\n          fontFamily: page.settings.primaryFont\n        }"
+      >
+        <app-node-renderer
+          [node]="page.root"
+          [selectedId]="builder.selectedId"
+          (selectNode)="selectNode($event)"
+          (startDrag)="handleStartDrag($event)"
+          (startResize)="handleStartResize($event)"
+        ></app-node-renderer>
+      </div>
+    </main>
+
+    <aside class="builder__properties">
+      <app-properties-panel [node]="selectedNode"></app-properties-panel>
+    </aside>
+  </div>
+</div>
+
+<div class="modal" *ngIf="showExportModal">
+  <div class="modal__content">
+    <h3>Export</h3>
+    <p>Select the export format for your page.</p>
+    <div class="modal__actions">
+      <button type="button" (click)="exportStatic()">Static HTML + CSS</button>
+      <button type="button" (click)="exportAngular()">Angular Component</button>
+    </div>
+    <button type="button" class="ghost" (click)="showExportModal = false">Close</button>
+  </div>
+</div>

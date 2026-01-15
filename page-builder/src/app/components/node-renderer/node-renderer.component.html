@@ -1,0 +1,295 @@
+<ng-container [ngSwitch]="node.type">
+  <section
+    *ngSwitchCase="'section'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  >
+    <app-node-renderer
+      *ngFor="let child of node.children"
+      [node]="child"
+      [selectedId]="selectedId"
+      [preview]="preview"
+      (selectNode)="selectNode.emit($event)"
+      (startDrag)="startDrag.emit($event)"
+      (startResize)="startResize.emit($event)"
+    />
+    <span
+      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </section>
+
+  <div
+    *ngSwitchCase="'container'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  >
+    <app-node-renderer
+      *ngFor="let child of node.children"
+      [node]="child"
+      [selectedId]="selectedId"
+      [preview]="preview"
+      (selectNode)="selectNode.emit($event)"
+      (startDrag)="startDrag.emit($event)"
+      (startResize)="startResize.emit($event)"
+    />
+    <span
+      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </div>
+
+  <ng-container *ngSwitchCase="'heading'">
+    <ng-container [ngSwitch]="node.content?.tag ?? 'h2'">
+      <h1
+        *ngSwitchCase="'h1'"
+        class="node node-{{ node.id }}"
+        [class.node--selected]="isSelected"
+        [ngStyle]="node.styles.default"
+        (click)="handleSelect($event)"
+        (mousedown)="handleMouseDown($event)"
+      >
+        {{ node.content?.text }}
+        <span
+          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          class="resize-handle"
+          (mousedown)="handleResizeMouseDown($event)"
+        ></span>
+      </h1>
+      <h2
+        *ngSwitchCase="'h2'"
+        class="node node-{{ node.id }}"
+        [class.node--selected]="isSelected"
+        [ngStyle]="node.styles.default"
+        (click)="handleSelect($event)"
+        (mousedown)="handleMouseDown($event)"
+      >
+        {{ node.content?.text }}
+        <span
+          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          class="resize-handle"
+          (mousedown)="handleResizeMouseDown($event)"
+        ></span>
+      </h2>
+      <h3
+        *ngSwitchCase="'h3'"
+        class="node node-{{ node.id }}"
+        [class.node--selected]="isSelected"
+        [ngStyle]="node.styles.default"
+        (click)="handleSelect($event)"
+        (mousedown)="handleMouseDown($event)"
+      >
+        {{ node.content?.text }}
+        <span
+          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          class="resize-handle"
+          (mousedown)="handleResizeMouseDown($event)"
+        ></span>
+      </h3>
+      <h4
+        *ngSwitchCase="'h4'"
+        class="node node-{{ node.id }}"
+        [class.node--selected]="isSelected"
+        [ngStyle]="node.styles.default"
+        (click)="handleSelect($event)"
+        (mousedown)="handleMouseDown($event)"
+      >
+        {{ node.content?.text }}
+        <span
+          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          class="resize-handle"
+          (mousedown)="handleResizeMouseDown($event)"
+        ></span>
+      </h4>
+      <h5
+        *ngSwitchCase="'h5'"
+        class="node node-{{ node.id }}"
+        [class.node--selected]="isSelected"
+        [ngStyle]="node.styles.default"
+        (click)="handleSelect($event)"
+        (mousedown)="handleMouseDown($event)"
+      >
+        {{ node.content?.text }}
+        <span
+          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          class="resize-handle"
+          (mousedown)="handleResizeMouseDown($event)"
+        ></span>
+      </h5>
+      <h6
+        *ngSwitchCase="'h6'"
+        class="node node-{{ node.id }}"
+        [class.node--selected]="isSelected"
+        [ngStyle]="node.styles.default"
+        (click)="handleSelect($event)"
+        (mousedown)="handleMouseDown($event)"
+      >
+        {{ node.content?.text }}
+        <span
+          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          class="resize-handle"
+          (mousedown)="handleResizeMouseDown($event)"
+        ></span>
+      </h6>
+    </ng-container>
+  </ng-container>
+
+  <p
+    *ngSwitchCase="'text'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  >
+    {{ node.content?.text }}
+    <span
+      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </p>
+
+  <img
+    *ngSwitchCase="'image'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    [src]="node.content?.src"
+    [alt]="node.content?.alt"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  />
+
+  <a
+    *ngSwitchCase="'button'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    [href]="preview ? node.content?.href : 'javascript:void(0)'"
+    [attr.target]="node.content?.target"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  >
+    {{ node.content?.text }}
+    <span
+      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </a>
+
+  <div
+    *ngSwitchCase="'divider'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  ></div>
+
+  <div
+    *ngSwitchCase="'spacer'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  ></div>
+
+  <ul
+    *ngSwitchCase="'list'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  >
+    <li *ngFor="let item of listItems">{{ item }}</li>
+    <span
+      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </ul>
+
+  <div
+    *ngSwitchCase="'card'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  >
+    <app-node-renderer
+      *ngFor="let child of node.children"
+      [node]="child"
+      [selectedId]="selectedId"
+      [preview]="preview"
+      (selectNode)="selectNode.emit($event)"
+      (startDrag)="startDrag.emit($event)"
+      (startResize)="startResize.emit($event)"
+    />
+    <span
+      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </div>
+
+  <div
+    *ngSwitchCase="'columns2'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  >
+    <app-node-renderer
+      *ngFor="let child of node.children"
+      [node]="child"
+      [selectedId]="selectedId"
+      [preview]="preview"
+      (selectNode)="selectNode.emit($event)"
+      (startDrag)="startDrag.emit($event)"
+      (startResize)="startResize.emit($event)"
+    />
+    <span
+      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </div>
+
+  <section
+    *ngSwitchCase="'hero'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+  >
+    <app-node-renderer
+      *ngFor="let child of node.children"
+      [node]="child"
+      [selectedId]="selectedId"
+      [preview]="preview"
+      (selectNode)="selectNode.emit($event)"
+      (startDrag)="startDrag.emit($event)"
+      (startResize)="startResize.emit($event)"
+    />
+    <span
+      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </section>
+</ng-container>
