@@ -210,6 +210,14 @@ export class FirebaseDataService {
     });
   }
 
+  async getNextVersionNumber(projectId: string, pageId: string): Promise<number> {
+    const uid = this.getUidOrThrow();
+    const versionsSnap = await getDocs(
+      collection(this.db, `users/${uid}/projects/${projectId}/pages/${pageId}/versions`),
+    );
+    return versionsSnap.size + 1;
+  }
+
   async listVersions(projectId: string, pageId: string): Promise<{ id: string; createdAt: number; note: string }[]> {
     const uid = this.getUidOrThrow();
     const versionsSnap = await getDocs(

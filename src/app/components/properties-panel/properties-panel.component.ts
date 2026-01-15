@@ -17,16 +17,11 @@ export class PropertiesPanelComponent {
   @Input() projectId: string | null = null;
   @Input() pageId: string | null = null;
 
-  activeTab: 'content' | 'typography' | 'spacing' | 'layout' | 'position' | 'states' = 'content';
   linkMargin = true;
   linkPadding = true;
   uploadingImage = false;
 
   constructor(private builder: BuilderService, private storageService: FirebaseStorageService) {}
-
-  setTab(tab: typeof this.activeTab): void {
-    this.activeTab = tab;
-  }
 
   updateContent(key: keyof NonNullable<PageNode['content']>, value: string): void {
     if (!this.node) {

@@ -313,7 +313,13 @@ export class BuilderComponent implements OnInit, OnDestroy {
     const blob = await zip.generateAsync({ type: 'blob' });
     this.downloadBlob(blob, 'export.zip');
     if (this.projectId && this.pageId) {
-      await this.dataService.addVersion(this.projectId, this.pageId, this.page, 'export snapshot');
+      const next = await this.dataService.getNextVersionNumber(this.projectId, this.pageId);
+      await this.dataService.addVersion(
+        this.projectId,
+        this.pageId,
+        this.page,
+        `export snapshot ${next}`,
+      );
     }
     this.showExportModal = false;
   }
@@ -332,7 +338,13 @@ export class BuilderComponent implements OnInit, OnDestroy {
     const blob = await zip.generateAsync({ type: 'blob' });
     this.downloadBlob(blob, 'export.zip');
     if (this.projectId && this.pageId) {
-      await this.dataService.addVersion(this.projectId, this.pageId, this.page, 'export snapshot');
+      const next = await this.dataService.getNextVersionNumber(this.projectId, this.pageId);
+      await this.dataService.addVersion(
+        this.projectId,
+        this.pageId,
+        this.page,
+        `export snapshot ${next}`,
+      );
     }
     this.showExportModal = false;
   }
