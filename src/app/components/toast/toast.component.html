@@ -1,0 +1,4 @@
+<div class="toast" *ngIf="toast" [class.toast--error]="toast.type === 'error'" [class.toast--success]="toast.type === 'success'">
+  <span>{{ toast.message }}</span>
+  <button type="button" (click)="close()">×</button>
+</div>

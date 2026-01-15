@@ -1,9 +1,29 @@
 <div class="preview" *ngIf="page">
   <style>{{ hoverStyles }}</style>
-  <div
-    class="preview__canvas"
-    [ngStyle]="{\n      background: page.settings.baseBg,\n      color: page.settings.baseTextColor,\n      fontFamily: page.settings.primaryFont\n    }"
-  >
-    <app-node-renderer [node]="page.root" [preview]="true"></app-node-renderer>
+  <header class="preview__topbar">
+    <div class="preview__title">
+      <button type="button" class="ghost" (click)="goBack()">Back to Builder</button>
+      <span>Preview</span>
+    </div>
+    <div class="view-toggle">
+      <button type="button" [class.active]="viewMode === 'desktop'" (click)="viewMode = 'desktop'">Desktop</button>
+      <button type="button" [class.active]="viewMode === 'tablet'" (click)="viewMode = 'tablet'">Tablet</button>
+      <button type="button" [class.active]="viewMode === 'mobile'" (click)="viewMode = 'mobile'">Mobile</button>
+    </div>
+  </header>
+  <div class="preview__canvas">
+    <div
+      class="preview__frame"
+      [class.preview__frame--tablet]="viewMode === 'tablet'"
+      [class.preview__frame--mobile]="viewMode === 'mobile'"
+      [class.preview__frame--desktop]="viewMode === 'desktop'"
+      [ngStyle]="{
+        background: page.settings.baseBg,
+        color: page.settings.baseTextColor,
+        fontFamily: page.settings.primaryFont
+      }"
+    >
+      <app-node-renderer [node]="page.root" [preview]="true"></app-node-renderer>
+    </div>
   </div>
 </div>

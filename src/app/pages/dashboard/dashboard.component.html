@@ -2,7 +2,14 @@
   <header class="dashboard__hero">
     <div class="dashboard__hero-content">
       <h1>Page Builder Dashboard</h1>
-      <p>Organize projects and pages with LocalStorage persistence.</p>
+      <p>Organize projects and pages with Firebase persistence.</p>
+    </div>
+    <div class="dashboard__hero-actions">
+      <div class="profile">
+        <span>{{ userEmail || 'Signed in' }}</span>
+        <button type="button" class="ghost" (click)="manageProfile()">Manage Profile</button>
+      </div>
+      <button type="button" class="ghost" (click)="logout()">Logout</button>
     </div>
     <div class="dashboard__hero-card">
       <label>Project name</label>
@@ -13,6 +20,8 @@
 
   <section class="dashboard__projects">
     <h2>Projects</h2>
+    <p class="project__empty" *ngIf="loading">Loading projects...</p>
+    <p class="project__empty" *ngIf="!loading && !projects.length">No projects yet. Create your first project.</p>
     <div class="project" *ngFor="let project of projects">
       <div class="project__header">
         <div>

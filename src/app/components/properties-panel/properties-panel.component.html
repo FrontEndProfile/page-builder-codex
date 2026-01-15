@@ -11,8 +11,14 @@
   </div>
 
   <div class="panel__body" *ngIf="node; else empty">
+    <div class="panel__header">
+      <span>Selected</span>
+      <h4>{{ node.meta?.name ?? node.type }}</h4>
+    </div>
     <div class="panel__section" *ngIf="activeTab === 'content'">
-      <ng-container [ngSwitch]="node?.type">
+      <div class="panel__group">
+        <div class="panel__group-title">Content</div>
+      <ng-container [ngSwitch]="node.type">
         <div *ngSwitchCase="'heading'" class="field">
           <label>Heading text</label>
           <textarea
@@ -38,9 +44,14 @@
         <div *ngSwitchCase="'image'" class="field">
           <label>Image URL</label>
           <input [ngModel]="node.content?.src" (ngModelChange)="updateContent('src', $event)" />
+          <label>Upload image</label>
+          <label class="upload-button">
+            <span>{{ uploadingImage ? 'Uploading...' : 'Choose file' }}</span>
+            <input type="file" accept="image/*" (change)="handleImageUpload($event)" />
+          </label>
           <label>Alt text</label>
           <input [ngModel]="node.content?.alt" (ngModelChange)="updateContent('alt', $event)" />
-          <p class="hint">Uploads are disabled in Part-1. Use a URL.</p>
+          <p class="hint">Use a URL or upload from your device.</p>
         </div>
 
         <div *ngSwitchCase="'button'" class="field">
@@ -65,327 +76,356 @@
           <p class="hint">This block does not have editable content.</p>
         </div>
       </ng-container>
+      </div>
     </div>
 
     <div class="panel__section" *ngIf="activeTab === 'typography'">
-      <div class="field">
-        <label>Font family</label>
-        <select
-          [ngModel]="node?.styles.default.fontFamily"
-          (ngModelChange)="updateStyle('fontFamily', $event)"
-        >
-          <option value="Inter, Segoe UI, sans-serif">Primary</option>
-          <option value="Georgia, serif">Secondary</option>
-        </select>
-      </div>
-      <div class="grid">
+      <div class="panel__group">
+        <div class="panel__group-title">Font</div>
         <div class="field">
-          <label>Font size</label>
-          <input
-            [ngModel]="node?.styles.default.fontSize"
-            (ngModelChange)="updateStyle('fontSize', $event)"
-            placeholder="16px"
-          />
-        </div>
-        <div class="field">
-          <label>Weight</label>
-          <input
-            [ngModel]="node?.styles.default.fontWeight"
-            (ngModelChange)="updateStyle('fontWeight', $event)"
-            placeholder="400"
-          />
-        </div>
-        <div class="field">
-          <label>Line height</label>
-          <input
-            [ngModel]="node?.styles.default.lineHeight"
-            (ngModelChange)="updateStyle('lineHeight', $event)"
-            placeholder="1.6"
-          />
-        </div>
-        <div class="field">
-          <label>Align</label>
+          <label>Font family</label>
           <select
-            [ngModel]="node?.styles.default.textAlign"
-            (ngModelChange)="updateStyle('textAlign', $event)"
+            [ngModel]="node.styles.default['fontFamily']"
+            (ngModelChange)="updateStyle('fontFamily', $event)"
           >
-            <option value="left">Left</option>
-            <option value="center">Center</option>
-            <option value="right">Right</option>
-            <option value="justify">Justify</option>
+            <option value="Inter, Segoe UI, sans-serif">Primary</option>
+            <option value="Georgia, serif">Secondary</option>
           </select>
         </div>
       </div>
-      <div class="field">
-        <label>Color</label>
-        <input
-          [ngModel]="node?.styles.default.color"
-          (ngModelChange)="updateStyle('color', $event)"
-          placeholder="#111111"
-        />
+      <div class="panel__group">
+        <div class="panel__group-title">Text</div>
+        <div class="grid">
+          <div class="field">
+            <label>Font size</label>
+            <input
+              [ngModel]="node.styles.default['fontSize']"
+              (ngModelChange)="updateStyle('fontSize', $event)"
+              placeholder="16px"
+            />
+          </div>
+          <div class="field">
+            <label>Weight</label>
+            <input
+              [ngModel]="node.styles.default['fontWeight']"
+              (ngModelChange)="updateStyle('fontWeight', $event)"
+              placeholder="400"
+            />
+          </div>
+          <div class="field">
+            <label>Line height</label>
+            <input
+              [ngModel]="node.styles.default['lineHeight']"
+              (ngModelChange)="updateStyle('lineHeight', $event)"
+              placeholder="1.6"
+            />
+          </div>
+          <div class="field">
+            <label>Align</label>
+            <select
+              [ngModel]="node.styles.default['textAlign']"
+              (ngModelChange)="updateStyle('textAlign', $event)"
+            >
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+              <option value="justify">Justify</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="panel__group">
+        <div class="panel__group-title">Color</div>
+        <div class="field">
+          <label>Text color</label>
+          <input
+            [ngModel]="node.styles.default['color']"
+            (ngModelChange)="updateStyle('color', $event)"
+            placeholder="#111111"
+          />
+        </div>
       </div>
     </div>
 
     <div class="panel__section" *ngIf="activeTab === 'spacing'">
-      <div class="section-title">
-        <h4>Margin</h4>
-        <button type="button" class="link-toggle" (click)="linkMargin = !linkMargin">
-          {{ linkMargin ? 'Linked' : 'Unlinked' }}
-        </button>
-      </div>
-      <div class="grid spacing-grid">
-        <div class="field">
-          <label>Top</label>
-          <input
-            [ngModel]="getStyleValue('marginTop')"
-            (ngModelChange)="updateSpacing('margin', 'Top', $event)"
-          />
+      <div class="panel__group">
+        <div class="section-title">
+          <h4>Margin</h4>
+          <button type="button" class="link-toggle" (click)="linkMargin = !linkMargin">
+            {{ linkMargin ? 'Linked' : 'Unlinked' }}
+          </button>
         </div>
-        <div class="field">
-          <label>Right</label>
-          <input
-            [ngModel]="getStyleValue('marginRight')"
-            (ngModelChange)="updateSpacing('margin', 'Right', $event)"
-          />
-        </div>
-        <div class="field">
-          <label>Bottom</label>
-          <input
-            [ngModel]="getStyleValue('marginBottom')"
-            (ngModelChange)="updateSpacing('margin', 'Bottom', $event)"
-          />
-        </div>
-        <div class="field">
-          <label>Left</label>
-          <input
-            [ngModel]="getStyleValue('marginLeft')"
-            (ngModelChange)="updateSpacing('margin', 'Left', $event)"
-          />
+        <div class="grid spacing-grid">
+          <div class="field">
+            <label>Top</label>
+            <input
+              [ngModel]="getStyleValue('marginTop')"
+              (ngModelChange)="updateSpacing('margin', 'Top', $event)"
+            />
+          </div>
+          <div class="field">
+            <label>Right</label>
+            <input
+              [ngModel]="getStyleValue('marginRight')"
+              (ngModelChange)="updateSpacing('margin', 'Right', $event)"
+            />
+          </div>
+          <div class="field">
+            <label>Bottom</label>
+            <input
+              [ngModel]="getStyleValue('marginBottom')"
+              (ngModelChange)="updateSpacing('margin', 'Bottom', $event)"
+            />
+          </div>
+          <div class="field">
+            <label>Left</label>
+            <input
+              [ngModel]="getStyleValue('marginLeft')"
+              (ngModelChange)="updateSpacing('margin', 'Left', $event)"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="section-title">
-        <h4>Padding</h4>
-        <button type="button" class="link-toggle" (click)="linkPadding = !linkPadding">
-          {{ linkPadding ? 'Linked' : 'Unlinked' }}
-        </button>
-      </div>
-      <div class="grid spacing-grid">
-        <div class="field">
-          <label>Top</label>
-          <input
-            [ngModel]="getStyleValue('paddingTop')"
-            (ngModelChange)="updateSpacing('padding', 'Top', $event)"
-          />
+      <div class="panel__group">
+        <div class="section-title">
+          <h4>Padding</h4>
+          <button type="button" class="link-toggle" (click)="linkPadding = !linkPadding">
+            {{ linkPadding ? 'Linked' : 'Unlinked' }}
+          </button>
         </div>
-        <div class="field">
-          <label>Right</label>
-          <input
-            [ngModel]="getStyleValue('paddingRight')"
-            (ngModelChange)="updateSpacing('padding', 'Right', $event)"
-          />
-        </div>
-        <div class="field">
-          <label>Bottom</label>
-          <input
-            [ngModel]="getStyleValue('paddingBottom')"
-            (ngModelChange)="updateSpacing('padding', 'Bottom', $event)"
-          />
-        </div>
-        <div class="field">
-          <label>Left</label>
-          <input
-            [ngModel]="getStyleValue('paddingLeft')"
-            (ngModelChange)="updateSpacing('padding', 'Left', $event)"
-          />
+        <div class="grid spacing-grid">
+          <div class="field">
+            <label>Top</label>
+            <input
+              [ngModel]="getStyleValue('paddingTop')"
+              (ngModelChange)="updateSpacing('padding', 'Top', $event)"
+            />
+          </div>
+          <div class="field">
+            <label>Right</label>
+            <input
+              [ngModel]="getStyleValue('paddingRight')"
+              (ngModelChange)="updateSpacing('padding', 'Right', $event)"
+            />
+          </div>
+          <div class="field">
+            <label>Bottom</label>
+            <input
+              [ngModel]="getStyleValue('paddingBottom')"
+              (ngModelChange)="updateSpacing('padding', 'Bottom', $event)"
+            />
+          </div>
+          <div class="field">
+            <label>Left</label>
+            <input
+              [ngModel]="getStyleValue('paddingLeft')"
+              (ngModelChange)="updateSpacing('padding', 'Left', $event)"
+            />
+          </div>
         </div>
       </div>
     </div>
 
     <div class="panel__section" *ngIf="activeTab === 'layout'">
-      <div class="grid">
-        <div class="field">
-          <label>Display</label>
-          <select
-            [ngModel]="node?.styles.default.display"
-            (ngModelChange)="updateStyle('display', $event)"
-          >
-            <option value="block">Block</option>
-            <option value="flex">Flex</option>
-            <option value="grid">Grid</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Width</label>
-          <input
-            [ngModel]="node?.styles.default.width"
-            (ngModelChange)="updateStyle('width', $event)"
-            placeholder="auto"
-          />
-        </div>
-        <div class="field">
-          <label>Height</label>
-          <input
-            [ngModel]="node?.styles.default.height"
-            (ngModelChange)="updateStyle('height', $event)"
-            placeholder="auto"
-          />
-        </div>
-        <div class="field">
-          <label>Max width</label>
-          <input
-            [ngModel]="node?.styles.default.maxWidth"
-            (ngModelChange)="updateStyle('maxWidth', $event)"
-            placeholder="1200px"
-          />
+      <div class="panel__group">
+        <div class="panel__group-title">Display & Size</div>
+        <div class="grid">
+          <div class="field">
+            <label>Display</label>
+            <select
+              [ngModel]="node.styles.default['display']"
+              (ngModelChange)="updateStyle('display', $event)"
+            >
+              <option value="block">Block</option>
+              <option value="flex">Flex</option>
+              <option value="grid">Grid</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Width</label>
+            <input
+              [ngModel]="node.styles.default['width']"
+              (ngModelChange)="updateStyle('width', $event)"
+              placeholder="auto"
+            />
+          </div>
+          <div class="field">
+            <label>Height</label>
+            <input
+              [ngModel]="node.styles.default['height']"
+              (ngModelChange)="updateStyle('height', $event)"
+              placeholder="auto"
+            />
+          </div>
+          <div class="field">
+            <label>Max width</label>
+            <input
+              [ngModel]="node.styles.default['maxWidth']"
+              (ngModelChange)="updateStyle('maxWidth', $event)"
+              placeholder="1200px"
+            />
+          </div>
         </div>
       </div>
-      <div class="field">
-        <label>Background color</label>
-        <input
-          [ngModel]="node?.styles.default.backgroundColor"
-          (ngModelChange)="updateStyle('backgroundColor', $event)"
-          placeholder="#ffffff"
-        />
-      </div>
-      <div class="grid">
+      <div class="panel__group">
+        <div class="panel__group-title">Background & Border</div>
         <div class="field">
-          <label>Border</label>
+          <label>Background color</label>
           <input
-            [ngModel]="node?.styles.default.border"
-            (ngModelChange)="updateStyle('border', $event)"
-            placeholder="1px solid #e5e7eb"
+            [ngModel]="node.styles.default['backgroundColor']"
+            (ngModelChange)="updateStyle('backgroundColor', $event)"
+            placeholder="#ffffff"
           />
         </div>
-        <div class="field">
-          <label>Radius</label>
-          <input
-            [ngModel]="node?.styles.default.borderRadius"
-            (ngModelChange)="updateStyle('borderRadius', $event)"
-            placeholder="12px"
-          />
-        </div>
-        <div class="field">
-          <label>Shadow</label>
-          <input
-            [ngModel]="node?.styles.default.boxShadow"
-            (ngModelChange)="updateStyle('boxShadow', $event)"
-            placeholder="0 8px 30px rgba(0,0,0,0.1)"
-          />
+        <div class="grid">
+          <div class="field">
+            <label>Border</label>
+            <input
+              [ngModel]="node.styles.default['border']"
+              (ngModelChange)="updateStyle('border', $event)"
+              placeholder="1px solid #e5e7eb"
+            />
+          </div>
+          <div class="field">
+            <label>Radius</label>
+            <input
+              [ngModel]="node.styles.default['borderRadius']"
+              (ngModelChange)="updateStyle('borderRadius', $event)"
+              placeholder="12px"
+            />
+          </div>
+          <div class="field">
+            <label>Shadow</label>
+            <input
+              [ngModel]="node.styles.default['boxShadow']"
+              (ngModelChange)="updateStyle('boxShadow', $event)"
+              placeholder="0 8px 30px rgba(0,0,0,0.1)"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="grid" *ngIf="node?.styles.default.display === 'flex'">
-        <div class="field">
-          <label>Align items</label>
-          <select
-            [ngModel]="node?.styles.default.alignItems"
-            (ngModelChange)="updateStyle('alignItems', $event)"
-          >
-            <option value="stretch">Stretch</option>
-            <option value="flex-start">Start</option>
-            <option value="center">Center</option>
-            <option value="flex-end">End</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Justify content</label>
-          <select
-            [ngModel]="node?.styles.default.justifyContent"
-            (ngModelChange)="updateStyle('justifyContent', $event)"
-          >
-            <option value="flex-start">Start</option>
-            <option value="center">Center</option>
-            <option value="flex-end">End</option>
-            <option value="space-between">Space between</option>
-            <option value="space-around">Space around</option>
-            <option value="space-evenly">Space evenly</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Gap</label>
-          <input
-            [ngModel]="node?.styles.default.gap"
-            (ngModelChange)="updateStyle('gap', $event)"
-            placeholder="16px"
-          />
+      <div class="panel__group" *ngIf="node.styles.default['display'] === 'flex'">
+        <div class="panel__group-title">Flex</div>
+        <div class="grid">
+          <div class="field">
+            <label>Align items</label>
+            <select
+              [ngModel]="node.styles.default['alignItems']"
+              (ngModelChange)="updateStyle('alignItems', $event)"
+            >
+              <option value="stretch">Stretch</option>
+              <option value="flex-start">Start</option>
+              <option value="center">Center</option>
+              <option value="flex-end">End</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Justify content</label>
+            <select
+              [ngModel]="node.styles.default['justifyContent']"
+              (ngModelChange)="updateStyle('justifyContent', $event)"
+            >
+              <option value="flex-start">Start</option>
+              <option value="center">Center</option>
+              <option value="flex-end">End</option>
+              <option value="space-between">Space between</option>
+              <option value="space-around">Space around</option>
+              <option value="space-evenly">Space evenly</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Gap</label>
+            <input
+              [ngModel]="node.styles.default['gap']"
+              (ngModelChange)="updateStyle('gap', $event)"
+              placeholder="16px"
+            />
+          </div>
         </div>
       </div>
     </div>
 
     <div class="panel__section" *ngIf="activeTab === 'position'">
-      <div class="grid">
-        <div class="field">
-          <label>Position</label>
-          <select
-            [ngModel]="node?.styles.default.position"
-            (ngModelChange)="updateStyle('position', $event)"
-          >
-            <option value="static">Static</option>
-            <option value="relative">Relative</option>
-            <option value="absolute">Absolute</option>
-          </select>
+      <div class="panel__group">
+        <div class="panel__group-title">Position</div>
+        <div class="grid">
+          <div class="field">
+            <label>Position</label>
+            <select
+              [ngModel]="node.styles.default['position']"
+              (ngModelChange)="updateStyle('position', $event)"
+            >
+              <option value="static">Static</option>
+              <option value="relative">Relative</option>
+              <option value="absolute">Absolute</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Z-index</label>
+            <input
+              [ngModel]="node.styles.default['zIndex']"
+              (ngModelChange)="updateStyle('zIndex', $event)"
+            />
+          </div>
         </div>
-        <div class="field">
-          <label>Z-index</label>
-          <input
-            [ngModel]="node?.styles.default.zIndex"
-            (ngModelChange)="updateStyle('zIndex', $event)"
-          />
-        </div>
-      </div>
-      <div class="grid spacing-grid">
-        <div class="field">
-          <label>Top</label>
-          <input [ngModel]="node?.styles.default.top" (ngModelChange)="updateStyle('top', $event)" />
-        </div>
-        <div class="field">
-          <label>Right</label>
-          <input [ngModel]="node?.styles.default.right" (ngModelChange)="updateStyle('right', $event)" />
-        </div>
-        <div class="field">
-          <label>Bottom</label>
-          <input [ngModel]="node?.styles.default.bottom" (ngModelChange)="updateStyle('bottom', $event)" />
-        </div>
-        <div class="field">
-          <label>Left</label>
-          <input [ngModel]="node?.styles.default.left" (ngModelChange)="updateStyle('left', $event)" />
+        <div class="grid spacing-grid">
+          <div class="field">
+            <label>Top</label>
+            <input [ngModel]="node.styles.default['top']" (ngModelChange)="updateStyle('top', $event)" />
+          </div>
+          <div class="field">
+            <label>Right</label>
+            <input [ngModel]="node.styles.default['right']" (ngModelChange)="updateStyle('right', $event)" />
+          </div>
+          <div class="field">
+            <label>Bottom</label>
+            <input [ngModel]="node.styles.default['bottom']" (ngModelChange)="updateStyle('bottom', $event)" />
+          </div>
+          <div class="field">
+            <label>Left</label>
+            <input [ngModel]="node.styles.default['left']" (ngModelChange)="updateStyle('left', $event)" />
+          </div>
         </div>
       </div>
     </div>
 
     <div class="panel__section" *ngIf="activeTab === 'states'">
-      <div class="field">
-        <label>Hover background</label>
-        <input
-          [ngModel]="node?.styles.hover?.backgroundColor"
-          (ngModelChange)="updateStyle('backgroundColor', $event, 'hover')"
-          placeholder="#111111"
-        />
-      </div>
-      <div class="field">
-        <label>Hover color</label>
-        <input
-          [ngModel]="node?.styles.hover?.color"
-          (ngModelChange)="updateStyle('color', $event, 'hover')"
-          placeholder="#ffffff"
-        />
-      </div>
-      <div class="field">
-        <label>Hover shadow</label>
-        <input
-          [ngModel]="node?.styles.hover?.boxShadow"
-          (ngModelChange)="updateStyle('boxShadow', $event, 'hover')"
-          placeholder="0 10px 25px rgba(0,0,0,0.2)"
-        />
-      </div>
-      <div class="field">
-        <label>Hover border</label>
-        <input
-          [ngModel]="node?.styles.hover?.border"
-          (ngModelChange)="updateStyle('border', $event, 'hover')"
-          placeholder="1px solid #4f46e5"
-        />
+      <div class="panel__group">
+        <div class="panel__group-title">Hover state</div>
+        <div class="field">
+          <label>Hover background</label>
+          <input
+            [ngModel]="node.styles.hover?.['backgroundColor']"
+            (ngModelChange)="updateStyle('backgroundColor', $event, 'hover')"
+            placeholder="#111111"
+          />
+        </div>
+        <div class="field">
+          <label>Hover color</label>
+          <input
+            [ngModel]="node.styles.hover?.['color']"
+            (ngModelChange)="updateStyle('color', $event, 'hover')"
+            placeholder="#ffffff"
+          />
+        </div>
+        <div class="field">
+          <label>Hover shadow</label>
+          <input
+            [ngModel]="node.styles.hover?.['boxShadow']"
+            (ngModelChange)="updateStyle('boxShadow', $event, 'hover')"
+            placeholder="0 10px 25px rgba(0,0,0,0.2)"
+          />
+        </div>
+        <div class="field">
+          <label>Hover border</label>
+          <input
+            [ngModel]="node.styles.hover?.['border']"
+            (ngModelChange)="updateStyle('border', $event, 'hover')"
+            placeholder="1px solid #4f46e5"
+          />
+        </div>
       </div>
     </div>
   </div>

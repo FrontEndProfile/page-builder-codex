@@ -5,11 +5,20 @@
       <span>Last updated {{ page.updatedAt | date: 'short' }}</span>
     </div>
     <div class="topbar__actions">
+      <div class="view-toggle">
+        <button type="button" [class.active]="viewMode === 'desktop'" (click)="viewMode = 'desktop'">Desktop</button>
+        <button type="button" [class.active]="viewMode === 'tablet'" (click)="viewMode = 'tablet'">Tablet</button>
+        <button type="button" [class.active]="viewMode === 'mobile'" (click)="viewMode = 'mobile'">Mobile</button>
+      </div>
       <button type="button" (click)="save()">Save</button>
       <button type="button" [disabled]="!canUndo" (click)="undo()">Undo</button>
       <button type="button" [disabled]="!canRedo" (click)="redo()">Redo</button>
+      <button type="button" class="danger" [disabled]="!selectedNode || selectedNode.id === page.root.id" (click)="deleteSelected()">
+        Delete
+      </button>
       <button type="button" (click)="openPreview()">Preview</button>
       <button type="button" (click)="showExportModal = true">Export</button>
+      <button type="button" (click)="openVersions()">Versions</button>
       <button type="button" (click)="exportJson()">Export JSON</button>
       <label class="import-button">
         Import JSON
@@ -20,35 +29,73 @@
 
   <div class="builder__layout">
     <aside class="builder__sidebar">
-      <h3>Component Library</h3>
-      <div class="library">
-        <div class="library__item" *ngFor="let item of library">
-          <div>
-            <strong>{{ item.label }}</strong>
-            <p>{{ item.description }}</p>
+      <div class="sidebar__tabs">
+        <button type="button" [class.active]="sidebarTab === 'library'" (click)="sidebarTab = 'library'">
+          Library
+        </button>
+        <button type="button" [class.active]="sidebarTab === 'layers'" (click)="sidebarTab = 'layers'">
+          Layers
+        </button>
+      </div>
+
+      <div *ngIf="sidebarTab === 'library'">
+        <h3>Component Library</h3>
+        <div class="library">
+          <div class="library__item" *ngFor="let item of library">
+            <div>
+              <strong>{{ item.label }}</strong>
+              <p>{{ item.description }}</p>
+            </div>
+            <button type="button" (click)="addNode(item.type)">Add</button>
           </div>
-          <button type="button" (click)="addNode(item.type)">Add</button>
         </div>
+      </div>
+
+      <div *ngIf="sidebarTab === 'layers'" class="layers">
+        <h3>Layers</h3>
+        <ng-container *ngTemplateOutlet="layerNode; context: { $implicit: page.root, depth: 0 }"></ng-container>
       </div>
     </aside>
 
     <main class="builder__canvas" (click)="builder.selectNode(null)">
       <div
-        class="canvas__inner"
-        [ngStyle]="{\n          background: page.settings.baseBg,\n          color: page.settings.baseTextColor,\n          fontFamily: page.settings.primaryFont\n        }"
+        class="canvas__frame"
+        [class.canvas__frame--tablet]="viewMode === 'tablet'"
+        [class.canvas__frame--mobile]="viewMode === 'mobile'"
+        [ngStyle]="viewMode === 'desktop' ? null : { width: frameWidth[viewMode] + 'px' }"
       >
-        <app-node-renderer
-          [node]="page.root"
-          [selectedId]="builder.selectedId"
-          (selectNode)="selectNode($event)"
-          (startDrag)="handleStartDrag($event)"
-          (startResize)="handleStartResize($event)"
-        ></app-node-renderer>
+        <div
+          class="canvas__inner"
+          [ngStyle]="{
+            background: page.settings.baseBg,
+            color: page.settings.baseTextColor,
+            fontFamily: page.settings.primaryFont
+          }"
+        >
+          <app-node-renderer
+            [node]="page.root"
+            [selectedId]="builder.selectedId"
+            [parentId]="null"
+            [index]="0"
+            (selectNode)="selectNode($event)"
+            (startDrag)="handleStartDrag($event)"
+            (startResize)="handleStartResize($event)"
+            (reorder)="handleReorder($event)"
+          ></app-node-renderer>
+        </div>
+        <button
+          type="button"
+          class="canvas__resize-handle"
+          *ngIf="viewMode !== 'desktop'"
+          (mousedown)="startFrameResize($event, viewMode === 'tablet' ? 'tablet' : 'mobile')"
+        >
+          ↔
+        </button>
       </div>
     </main>
 
     <aside class="builder__properties">
-      <app-properties-panel [node]="selectedNode"></app-properties-panel>
+      <app-properties-panel [node]="selectedNode" [projectId]="projectId" [pageId]="pageId"></app-properties-panel>
     </aside>
   </div>
 </div>
@@ -64,3 +111,52 @@
     <button type="button" class="ghost" (click)="showExportModal = false">Close</button>
   </div>
 </div>
+
+<div class="modal" *ngIf="showVersionsModal">
+  <div class="modal__content">
+    <h3>Versions</h3>
+    <p *ngIf="versionsLoading">Loading versions...</p>
+    <div class="version-list" *ngIf="!versionsLoading">
+      <button
+        type="button"
+        class="version-item"
+        *ngFor="let version of versions"
+        (click)="restoreVersion(version.id)"
+      >
+        <span>{{ version.note }}</span>
+        <small>{{ version.createdAt | date: 'short' }}</small>
+      </button>
+      <p class="hint" *ngIf="!versions.length">No versions yet.</p>
+    </div>
+    <button type="button" class="ghost" (click)="showVersionsModal = false">Close</button>
+  </div>
+</div>
+
+<ng-template #layerNode let-node let-depth="depth">
+  <div
+    class="layers__item"
+    [class.layers__item--selected]="node.id === builder.selectedId"
+    [style.paddingLeft.px]="depth * 14"
+  >
+    <button type="button" class="layers__label" (click)="selectNode(node)">
+      {{ getLayerLabel(node) }}
+    </button>
+    <div class="layers__actions">
+      <button type="button" class="ghost" (click)="moveLayer(node, -1)" [disabled]="!canMoveLayer(node, -1)">↑</button>
+      <button type="button" class="ghost" (click)="moveLayer(node, 1)" [disabled]="!canMoveLayer(node, 1)">↓</button>
+      <button
+        type="button"
+        class="danger"
+        (click)="builder.deleteNode(node.id)"
+        [disabled]="!page || node.id === page.root.id"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+  <div class="layers__children" *ngIf="node.children?.length">
+    <ng-container *ngFor="let child of node.children; trackBy: trackById">
+      <ng-container *ngTemplateOutlet="layerNode; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+    </ng-container>
+  </div>
+</ng-template>

@@ -53,12 +53,43 @@ export const createNode = (type: NodeType): PageNode => {
   };
 
   switch (type) {
+    case 'header':
+      return {
+        ...base,
+        children: [],
+        styles: {
+          default: {
+            padding: '24px',
+            backgroundColor: '#0f172a',
+            color: '#ffffff',
+            display: 'grid',
+            gap: '12px',
+          },
+        },
+        meta: { name: 'Header' },
+      };
+    case 'footer':
+      return {
+        ...base,
+        children: [],
+        styles: {
+          default: {
+            padding: '24px',
+            backgroundColor: '#0f172a',
+            color: '#cbd5f5',
+            display: 'grid',
+            gap: '8px',
+          },
+        },
+        meta: { name: 'Footer' },
+      };
     case 'section':
       return {
         ...base,
         children: [],
         styles: {
           default: {
+            display: 'block',
             padding: '32px',
             margin: '16px 0',
             backgroundColor: '#ffffff',
@@ -73,6 +104,7 @@ export const createNode = (type: NodeType): PageNode => {
         children: [],
         styles: {
           default: {
+            display: 'block',
             padding: '16px',
           },
         },
@@ -222,7 +254,7 @@ export const createNode = (type: NodeType): PageNode => {
     case 'hero': {
       const heroHeading = createNode('heading');
       heroHeading.content = { text: 'Hero headline', tag: 'h1' };
-      heroHeading.styles.default.fontSize = '48px';
+      heroHeading.styles.default['fontSize'] = '48px';
       const heroText = createNode('text');
       heroText.content = { text: 'Describe your product or service with a bold, compelling statement.', tag: 'p' };
       const heroButton = createNode('button');
@@ -287,6 +319,10 @@ export const toKebabCase = (value: string): string =>
 export const renderNodeHtml = (node: PageNode): string => {
   const className = `node-${node.id}`;
   switch (node.type) {
+    case 'header':
+      return `<header class="${className}">${renderChildren(node)}</header>`;
+    case 'footer':
+      return `<footer class="${className}">${renderChildren(node)}</footer>`;
     case 'section':
       return `<section class="${className}">${renderChildren(node)}</section>`;
     case 'container':

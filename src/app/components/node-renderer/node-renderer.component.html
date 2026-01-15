@@ -1,23 +1,116 @@
 <ng-container [ngSwitch]="node.type">
+  <header
+    *ngSwitchCase="'header'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
+  >
+    <app-node-renderer
+      *ngFor="let child of node.children ?? []; let i = index"
+      [node]="child"
+      [selectedId]="selectedId"
+      [preview]="preview"
+      [parentId]="node.id"
+      [index]="i"
+      (selectNode)="selectNode.emit($event)"
+      (startDrag)="startDrag.emit($event)"
+      (startResize)="startResize.emit($event)"
+      (reorder)="reorder.emit($event)"
+    />
+    <div
+      class="node-dropzone"
+      *ngIf="!preview"
+      (dragover)="handleDragOver($event)"
+      (drop)="handleDropInto($event)"
+    >
+      <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
+    </div>
+    <span
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </header>
+
+  <footer
+    *ngSwitchCase="'footer'"
+    class="node node-{{ node.id }}"
+    [class.node--selected]="isSelected"
+    [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
+    (click)="handleSelect($event)"
+    (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
+  >
+    <app-node-renderer
+      *ngFor="let child of node.children ?? []; let i = index"
+      [node]="child"
+      [selectedId]="selectedId"
+      [preview]="preview"
+      [parentId]="node.id"
+      [index]="i"
+      (selectNode)="selectNode.emit($event)"
+      (startDrag)="startDrag.emit($event)"
+      (startResize)="startResize.emit($event)"
+      (reorder)="reorder.emit($event)"
+    />
+    <div
+      class="node-dropzone"
+      *ngIf="!preview"
+      (dragover)="handleDragOver($event)"
+      (drop)="handleDropInto($event)"
+    >
+      <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
+    </div>
+    <span
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      class="resize-handle"
+      (mousedown)="handleResizeMouseDown($event)"
+    ></span>
+  </footer>
+
   <section
     *ngSwitchCase="'section'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   >
     <app-node-renderer
-      *ngFor="let child of node.children"
+      *ngFor="let child of node.children ?? []; let i = index"
       [node]="child"
       [selectedId]="selectedId"
       [preview]="preview"
+      [parentId]="node.id"
+      [index]="i"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (reorder)="reorder.emit($event)"
     />
+    <div
+      class="node-dropzone"
+      *ngIf="!preview"
+      (dragover)="handleDragOver($event)"
+      (drop)="handleDropInto($event)"
+    >
+      <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
+    </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -28,20 +121,35 @@
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   >
     <app-node-renderer
-      *ngFor="let child of node.children"
+      *ngFor="let child of node.children ?? []; let i = index"
       [node]="child"
       [selectedId]="selectedId"
       [preview]="preview"
+      [parentId]="node.id"
+      [index]="i"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (reorder)="reorder.emit($event)"
     />
+    <div
+      class="node-dropzone"
+      *ngIf="!preview"
+      (dragover)="handleDragOver($event)"
+      (drop)="handleDropInto($event)"
+    >
+      <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
+    </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -54,12 +162,16 @@
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
         [ngStyle]="node.styles.default"
+        [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
+        (dragstart)="handleDragStart($event)"
+        (dragover)="handleDragOver($event)"
+        (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
         <span
-          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -69,12 +181,16 @@
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
         [ngStyle]="node.styles.default"
+        [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
+        (dragstart)="handleDragStart($event)"
+        (dragover)="handleDragOver($event)"
+        (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
         <span
-          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -84,12 +200,16 @@
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
         [ngStyle]="node.styles.default"
+        [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
+        (dragstart)="handleDragStart($event)"
+        (dragover)="handleDragOver($event)"
+        (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
         <span
-          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -99,12 +219,16 @@
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
         [ngStyle]="node.styles.default"
+        [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
+        (dragstart)="handleDragStart($event)"
+        (dragover)="handleDragOver($event)"
+        (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
         <span
-          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -114,12 +238,16 @@
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
         [ngStyle]="node.styles.default"
+        [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
+        (dragstart)="handleDragStart($event)"
+        (dragover)="handleDragOver($event)"
+        (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
         <span
-          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -129,12 +257,16 @@
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
         [ngStyle]="node.styles.default"
+        [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
+        (dragstart)="handleDragStart($event)"
+        (dragover)="handleDragOver($event)"
+        (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
         <span
-          *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -147,12 +279,16 @@
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   >
     {{ node.content?.text }}
     <span
-      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -165,8 +301,12 @@
     [ngStyle]="node.styles.default"
     [src]="node.content?.src"
     [alt]="node.content?.alt"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   />
 
   <a
@@ -176,12 +316,16 @@
     [ngStyle]="node.styles.default"
     [href]="preview ? node.content?.href : 'javascript:void(0)'"
     [attr.target]="node.content?.target"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   >
     {{ node.content?.text }}
     <span
-      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -192,8 +336,12 @@
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   ></div>
 
   <div
@@ -201,8 +349,12 @@
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   ></div>
 
   <ul
@@ -210,12 +362,16 @@
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   >
     <li *ngFor="let item of listItems">{{ item }}</li>
     <span
-      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -226,20 +382,35 @@
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   >
     <app-node-renderer
-      *ngFor="let child of node.children"
+      *ngFor="let child of node.children ?? []; let i = index"
       [node]="child"
       [selectedId]="selectedId"
       [preview]="preview"
+      [parentId]="node.id"
+      [index]="i"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (reorder)="reorder.emit($event)"
     />
+    <div
+      class="node-dropzone"
+      *ngIf="!preview"
+      (dragover)="handleDragOver($event)"
+      (drop)="handleDropInto($event)"
+    >
+      <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
+    </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -250,20 +421,35 @@
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   >
     <app-node-renderer
-      *ngFor="let child of node.children"
+      *ngFor="let child of node.children ?? []; let i = index"
       [node]="child"
       [selectedId]="selectedId"
       [preview]="preview"
+      [parentId]="node.id"
+      [index]="i"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (reorder)="reorder.emit($event)"
     />
+    <div
+      class="node-dropzone"
+      *ngIf="!preview"
+      (dragover)="handleDragOver($event)"
+      (drop)="handleDropInto($event)"
+    >
+      <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
+    </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -274,20 +460,35 @@
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
     [ngStyle]="node.styles.default"
+    [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
+    (dragstart)="handleDragStart($event)"
+    (dragover)="handleDragOver($event)"
+    (drop)="handleDrop($event)"
   >
     <app-node-renderer
-      *ngFor="let child of node.children"
+      *ngFor="let child of node.children ?? []; let i = index"
       [node]="child"
       [selectedId]="selectedId"
       [preview]="preview"
+      [parentId]="node.id"
+      [index]="i"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (reorder)="reorder.emit($event)"
     />
+    <div
+      class="node-dropzone"
+      *ngIf="!preview"
+      (dragover)="handleDragOver($event)"
+      (drop)="handleDropInto($event)"
+    >
+      <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
+    </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default.position === 'absolute'"
+      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>

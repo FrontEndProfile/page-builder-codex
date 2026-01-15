@@ -1,4 +1,6 @@
 export type NodeType =
+  | 'header'
+  | 'footer'
   | 'section'
   | 'container'
   | 'heading'

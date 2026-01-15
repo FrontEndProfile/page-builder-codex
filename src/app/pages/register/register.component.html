@@ -1,0 +1,20 @@
+<div class="login app-page">
+  <div class="login__card">
+    <h1>Create account</h1>
+    <p>Register with your email and password.</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input [(ngModel)]="email" type="email" placeholder="you@example.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input [(ngModel)]="password" type="password" placeholder="••••••••" />
+    </div>
+
+    <div class="actions">
+      <button type="button" (click)="register()" [disabled]="loading">Create Account</button>
+      <button type="button" class="ghost" (click)="goLogin()" [disabled]="loading">Back to Login</button>
+    </div>
+  </div>
+</div>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { PageDocument, PageNode, NodeType } from '../models/page-schema';
-import { StorageService } from './storage.service';
+import { FirebaseDataService } from './firebase-data.service';
 import { createNode, deepClone } from '../utils/page-builder-utils';
 
 @Injectable({ providedIn: 'root' })
@@ -17,10 +17,10 @@ export class BuilderService {
   page$ = this.pageSubject.asObservable();
   selectedId$ = this.selectedIdSubject.asObservable();
 
-  constructor(private storage: StorageService) {}
+  constructor(private dataService: FirebaseDataService) {}
 
-  loadPage(projectId: string, pageId: string): PageDocument | null {
-    const page = this.storage.getPage(projectId, pageId);
+  async loadPage(projectId: string, pageId: string): Promise<PageDocument | null> {
+    const page = await this.dataService.getPage(projectId, pageId);
     if (!page) {
       return null;
     }
@@ -85,6 +85,41 @@ export class BuilderService {
     }
   }
 
+  moveNode(nodeId: string, targetParentId: string, targetIndex: number): void {
+    const page = this.currentPage;
+    if (!page || page.root.id === nodeId) {
+      return;
+    }
+    const origin = this.findParent(page.root, nodeId);
+    if (!origin) {
+      return;
+    }
+    const originChildren = origin.parent.children ?? [];
+    const node = originChildren[origin.index];
+    if (!node) {
+      return;
+    }
+    const targetParent = this.findNode(page.root, targetParentId);
+    if (!targetParent) {
+      return;
+    }
+    if (this.findNode(node, targetParentId)) {
+      return;
+    }
+    targetParent.children = targetParent.children ?? [];
+    const [moved] = originChildren.splice(origin.index, 1);
+    if (!moved) {
+      return;
+    }
+    let insertIndex = targetIndex;
+    if (origin.parent.id === targetParentId && origin.index < targetIndex) {
+      insertIndex = Math.max(0, targetIndex - 1);
+    }
+    targetParent.children.splice(Math.min(insertIndex, targetParent.children.length), 0, moved);
+    this.touch(page);
+    this.selectNode(moved.id);
+  }
+
   updatePageSettings(partial: Partial<PageDocument['settings']>): void {
     const page = this.currentPage;
     if (!page) {
@@ -100,7 +135,7 @@ export class BuilderService {
       return;
     }
     page.updatedAt = Date.now();
-    this.storage.updatePage(this.projectId, page);
+    void this.dataService.updatePage(this.projectId, page);
   }
 
   undo(): void {
@@ -176,6 +211,24 @@ export class BuilderService {
     }
     for (const child of node.children ?? []) {
       const found = this.findNode(child, id);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  private findParent(
+    node: PageNode,
+    childId: string,
+  ): { parent: PageNode; index: number } | null {
+    const children = node.children ?? [];
+    const index = children.findIndex((child) => child.id === childId);
+    if (index !== -1) {
+      return { parent: node, index };
+    }
+    for (const child of children) {
+      const found = this.findParent(child, childId);
       if (found) {
         return found;
       }

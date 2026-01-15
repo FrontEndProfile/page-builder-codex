@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PageNode } from '../../models/page-schema';
 import { BuilderService } from '../../services/builder.service';
+import { FirebaseStorageService } from '../../services/firebase-storage.service';
 
 @Component({
   selector: 'app-properties-panel',
@@ -13,12 +14,15 @@ import { BuilderService } from '../../services/builder.service';
 })
 export class PropertiesPanelComponent {
   @Input() node: PageNode | null = null;
+  @Input() projectId: string | null = null;
+  @Input() pageId: string | null = null;
 
   activeTab: 'content' | 'typography' | 'spacing' | 'layout' | 'position' | 'states' = 'content';
   linkMargin = true;
   linkPadding = true;
+  uploadingImage = false;
 
-  constructor(private builder: BuilderService) {}
+  constructor(private builder: BuilderService, private storageService: FirebaseStorageService) {}
 
   setTab(tab: typeof this.activeTab): void {
     this.activeTab = tab;
@@ -31,6 +35,22 @@ export class PropertiesPanelComponent {
     this.builder.updateNode(this.node.id, (node) => {
       node.content = { ...(node.content ?? {}), [key]: value };
     });
+  }
+
+  async handleImageUpload(event: Event): Promise<void> {
+    const target = event.target as HTMLInputElement;
+    if (!target.files?.length || !this.projectId) {
+      return;
+    }
+    const file = target.files[0];
+    this.uploadingImage = true;
+    try {
+      const url = await this.storageService.uploadImage(this.projectId, file);
+      this.updateContent('src', url);
+    } finally {
+      this.uploadingImage = false;
+      target.value = '';
+    }
   }
 
   updateStyle(key: string, value: string, state: 'default' | 'hover' = 'default'): void {
@@ -75,10 +95,10 @@ export class PropertiesPanelComponent {
       return value;
     }
     if (key.startsWith('margin')) {
-      return this.extractFromShorthand(this.node.styles.default.margin, key.replace('margin', '').toLowerCase());
+      return this.extractFromShorthand(this.node.styles.default['margin'], key.replace('margin', '').toLowerCase());
     }
     if (key.startsWith('padding')) {
-      return this.extractFromShorthand(this.node.styles.default.padding, key.replace('padding', '').toLowerCase());
+      return this.extractFromShorthand(this.node.styles.default['padding'], key.replace('padding', '').toLowerCase());
     }
     return fallback;
   }

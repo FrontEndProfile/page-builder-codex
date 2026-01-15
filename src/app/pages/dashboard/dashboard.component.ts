@@ -1,10 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { StorageService } from '../../services/storage.service';
 import { ProjectData } from '../../models/page-schema';
 import { createPageDocument } from '../../utils/page-builder-utils';
+import { FirebaseDataService } from '../../services/firebase-data.service';
+import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
+import { combineLatest, Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,53 +17,98 @@ import { createPageDocument } from '../../utils/page-builder-utils';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit, OnDestroy {
   projects: ProjectData[] = [];
   projectName = '';
   pageNameByProject: Record<string, string> = {};
+  loading = true;
+  userEmail = '';
+  private unsubscribe?: () => void;
+  private authSub?: Subscription;
 
-  constructor(private storage: StorageService, private router: Router) {
-    this.refresh();
+  constructor(
+    private dataService: FirebaseDataService,
+    private router: Router,
+    private auth: AuthService,
+    private toast: ToastService,
+  ) {}
+
+  ngOnInit(): void {
+    this.authSub = combineLatest([this.auth.ready$, this.auth.user$])
+      .pipe(filter(([ready]) => ready))
+      .subscribe(([, user]) => {
+        if (!user) {
+          this.router.navigate(['/login']);
+          return;
+        }
+        this.unsubscribe?.();
+        this.loading = true;
+        this.userEmail = user.email ?? '';
+        void this.dataService
+          .listProjects()
+          .then((projects) => {
+            this.projects = projects;
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+        this.unsubscribe = this.dataService.subscribeProjects(
+          (projects) => {
+            this.projects = projects;
+            this.loading = false;
+          },
+          (error) => {
+            this.toast.show(error.message, 'error');
+            this.loading = false;
+          },
+        );
+      });
   }
 
-  refresh(): void {
-    this.projects = this.storage.loadProjects();
+  ngOnDestroy(): void {
+    this.unsubscribe?.();
+    this.authSub?.unsubscribe();
   }
 
-  createProject(): void {
+  async createProject(): Promise<void> {
     if (!this.projectName.trim()) {
       return;
     }
-    this.storage.createProject(this.projectName.trim());
+    await this.dataService.createProject(this.projectName.trim());
     this.projectName = '';
-    this.refresh();
   }
 
-  createPage(projectId: string): void {
+  async createPage(projectId: string): Promise<void> {
     const name = this.pageNameByProject[projectId]?.trim();
     if (!name) {
       return;
     }
     const page = createPageDocument(name);
-    this.storage.addPage(projectId, page);
+    await this.dataService.addPage(projectId, page);
     this.pageNameByProject[projectId] = '';
-    this.refresh();
   }
 
   openBuilder(projectId: string, pageId: string): void {
     this.router.navigate(['/builder', projectId, pageId]);
   }
 
-  duplicatePage(projectId: string, pageId: string): void {
-    this.storage.duplicatePage(projectId, pageId);
-    this.refresh();
+  async duplicatePage(projectId: string, pageId: string): Promise<void> {
+    await this.dataService.duplicatePage(projectId, pageId);
   }
 
-  deletePage(projectId: string, pageId: string): void {
+  async deletePage(projectId: string, pageId: string): Promise<void> {
     if (!confirm('Delete this page?')) {
       return;
     }
-    this.storage.deletePage(projectId, pageId);
-    this.refresh();
+    await this.dataService.deletePage(projectId, pageId);
+  }
+
+  async logout(): Promise<void> {
+    await this.auth.logout();
+    await this.router.navigate(['/login']);
+  }
+
+  manageProfile(): void {
+    this.toast.show('Profile management is coming soon.', 'info');
   }
 }

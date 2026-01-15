@@ -1,0 +1,68 @@
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 24px;
+}
+
+.login__card {
+  background: #111827;
+  border-radius: 20px;
+  padding: 24px;
+  width: min(420px, 100%);
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.login__card h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.login__card p {
+  margin: 0;
+  color: #cbd5f5;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 12px;
+  color: #cbd5f5;
+}
+
+.field input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+button.ghost {
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid #475569;
+}

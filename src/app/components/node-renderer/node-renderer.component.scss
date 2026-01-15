@@ -17,3 +17,13 @@
   bottom: -6px;
   cursor: nwse-resize;
 }
+
+.node-dropzone {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px dashed rgba(15, 23, 42, 0.2);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.6);
+}
