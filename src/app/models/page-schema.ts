@@ -43,6 +43,14 @@ export interface PageDocument {
     baseTextColor: string;
     baseBg: string;
   };
+  seo?: {
+    titleTag: string;
+    metaDescription: string;
+    sitemapIndex: boolean;
+    ogTitle: string;
+    ogDescription: string;
+    ogImage: string;
+  };
   createdAt: number;
   updatedAt: number;
 }

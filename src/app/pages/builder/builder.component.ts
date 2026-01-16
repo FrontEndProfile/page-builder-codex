@@ -105,6 +105,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
   pendingPageId: string | null = null;
   isLoading = false;
   loadingMessage = 'Loading...';
+  showPageSettings = false;
+  showDeletePageModal = false;
 
   projectId: string | null = null;
   pageId: string | null = null;
@@ -596,6 +598,72 @@ export class BuilderComponent implements OnInit, OnDestroy {
       return;
     }
     await this.router.navigate(['/builder', this.projectId, pageId]);
+  }
+
+  togglePageSettings(): void {
+    this.showPageSettings = !this.showPageSettings;
+  }
+
+  updatePageName(value: string): void {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return;
+    }
+    this.builder.updatePageInfo((page) => {
+      page.name = trimmed;
+      if (page.seo) {
+        if (!page.seo.titleTag) {
+          page.seo.titleTag = trimmed;
+        }
+        if (!page.seo.ogTitle) {
+          page.seo.ogTitle = trimmed;
+        }
+      }
+    });
+  }
+
+  getSeoValue(key: Exclude<keyof NonNullable<PageDocument['seo']>, 'sitemapIndex'>): string {
+    return this.page?.seo?.[key] ?? '';
+  }
+
+  getSitemapIndex(): boolean {
+    return this.page?.seo?.sitemapIndex ?? true;
+  }
+
+  updateSeoValue(key: keyof NonNullable<PageDocument['seo']>, value: string | boolean): void {
+    this.builder.updatePageInfo((page) => {
+      page.seo = page.seo ?? {
+        titleTag: page.name,
+        metaDescription: '',
+        sitemapIndex: true,
+        ogTitle: page.name,
+        ogDescription: '',
+        ogImage: '',
+      };
+      (page.seo as Record<string, string | boolean>)[key] = value;
+    });
+  }
+
+  requestDeletePage(): void {
+    this.showDeletePageModal = true;
+  }
+
+  async confirmDeletePage(): Promise<void> {
+    if (!this.projectId || !this.pageId) {
+      this.showDeletePageModal = false;
+      return;
+    }
+    this.setLoading(true, 'Deleting page...');
+    await this.dataService.deletePage(this.projectId, this.pageId);
+    await this.loadProjectPages();
+    const next = this.projectPages.find((page) => page.id !== this.pageId);
+    this.showDeletePageModal = false;
+    if (next) {
+      await this.router.navigate(['/builder', this.projectId, next.id]);
+    } else {
+      await this.router.navigate(['/dashboard']);
+    }
+    this.setLoading(false);
   }
 
   async confirmNavigate(save: boolean): Promise<void> {

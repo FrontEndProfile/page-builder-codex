@@ -35,6 +35,14 @@ export const createPageDocument = (name: string): PageDocument => {
       baseTextColor: '#1b1f3b',
       baseBg: '#f4f6fb',
     },
+    seo: {
+      titleTag: name,
+      metaDescription: '',
+      sitemapIndex: true,
+      ogTitle: name,
+      ogDescription: '',
+      ogImage: '',
+    },
     createdAt: now,
     updatedAt: now,
   };

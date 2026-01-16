@@ -71,7 +71,10 @@
       </div>
 
       <div class="sidebar__panel" *ngIf="sidebarMode === 'pages'">
-        <h3>Pages</h3>
+        <div class="panel__title">
+          <h3>Pages</h3>
+          <button type="button" class="settings-toggle" (click)="togglePageSettings()">⚙</button>
+        </div>
         <div class="project__create-page">
           <input [(ngModel)]="newPageName" placeholder="New page name" />
           <button type="button" (click)="createPageInline()">Add Page</button>
@@ -91,7 +94,83 @@
               >
                 {{ pageItem.id === pageId ? 'Current' : 'Open' }}
               </button>
+              <button
+                type="button"
+                class="ghost page-settings-btn"
+                *ngIf="pageItem.id === pageId"
+                (click)="togglePageSettings()"
+              >
+                Settings
+              </button>
             </div>
+          </div>
+        </div>
+
+        <div class="page-settings" *ngIf="showPageSettings">
+          <div class="page-settings__header">
+            <h4>Page Settings</h4>
+            <button type="button" class="ghost" (click)="togglePageSettings()">Close</button>
+          </div>
+
+          <div class="page-settings__section">
+            <label>Page Name</label>
+            <input [ngModel]="page.name" (ngModelChange)="updatePageName($event)" />
+          </div>
+
+          <div class="page-settings__section">
+            <h5>SEO Settings</h5>
+            <label>Title Tag</label>
+            <input [ngModel]="getSeoValue('titleTag')" (ngModelChange)="updateSeoValue('titleTag', $event)" />
+            <label>Meta Description</label>
+            <textarea
+              [ngModel]="getSeoValue('metaDescription')"
+              (ngModelChange)="updateSeoValue('metaDescription', $event)"
+            ></textarea>
+            <div class="toggle-row">
+              <span>Sitemap Indexing</span>
+              <label class="switch">
+                <input
+                  type="checkbox"
+                  [checked]="getSitemapIndex()"
+                  (change)="updateSeoValue('sitemapIndex', $any($event.target).checked)"
+                />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="page-settings__section">
+            <h5>Open Graph</h5>
+            <label>Open Graph Title</label>
+            <input [ngModel]="getSeoValue('ogTitle')" (ngModelChange)="updateSeoValue('ogTitle', $event)" />
+            <label>Open Graph Description</label>
+            <textarea
+              [ngModel]="getSeoValue('ogDescription')"
+              (ngModelChange)="updateSeoValue('ogDescription', $event)"
+            ></textarea>
+            <label>Open Graph Image</label>
+            <input [ngModel]="getSeoValue('ogImage')" (ngModelChange)="updateSeoValue('ogImage', $event)" />
+            <div class="og-preview">
+              <div class="og-preview__image" [style.backgroundImage]="'url(' + getSeoValue('ogImage') + ')'"></div>
+              <div>
+                <strong>{{ getSeoValue('ogTitle') || page.name }}</strong>
+                <p>{{ getSeoValue('ogDescription') || 'Preview description' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="page-settings__section">
+            <h5>Search Result Preview</h5>
+            <div class="search-preview">
+              <strong>{{ getSeoValue('titleTag') || page.name }}</strong>
+              <span>{{ (page.name || 'page') + '.com/' + page.id }}</span>
+              <p>{{ getSeoValue('metaDescription') || 'Meta description will appear here.' }}</p>
+            </div>
+          </div>
+
+          <div class="page-settings__section danger-zone">
+            <h5>Danger zone</h5>
+            <button type="button" class="danger" (click)="requestDeletePage()">Delete current page</button>
           </div>
         </div>
       </div>
@@ -193,6 +272,17 @@
     <div class="modal__actions">
       <button type="button" (click)="confirmNavigate(true)">Save & Continue</button>
       <button type="button" class="ghost" (click)="confirmNavigate(false)">Discard</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" *ngIf="showDeletePageModal">
+  <div class="modal__content">
+    <h3>Delete page?</h3>
+    <p>This will permanently remove the current page.</p>
+    <div class="modal__actions">
+      <button type="button" class="danger" (click)="confirmDeletePage()">Delete</button>
+      <button type="button" class="ghost" (click)="showDeletePageModal = false">Cancel</button>
     </div>
   </div>
 </div>

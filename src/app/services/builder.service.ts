@@ -131,6 +131,15 @@ export class BuilderService {
     this.touch(page);
   }
 
+  updatePageInfo(updater: (page: PageDocument) => void): void {
+    const page = this.currentPage;
+    if (!page) {
+      return;
+    }
+    updater(page);
+    this.touch(page);
+  }
+
   save(): void {
     const page = this.currentPage;
     if (!page || !this.projectId) {
