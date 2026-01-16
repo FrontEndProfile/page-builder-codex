@@ -6,6 +6,7 @@ import JSZip from 'jszip';
 import { BuilderService } from '../../services/builder.service';
 import { FirebaseDataService } from '../../services/firebase-data.service';
 import { FirebaseStorageService } from '../../services/firebase-storage.service';
+import { ToastService } from '../../services/toast.service';
 import { PageDocument, PageNode, NodeType } from '../../models/page-schema';
 import {
   buildDefaultStyles,
@@ -13,6 +14,7 @@ import {
   collectNodes,
   renderNodeHtml,
   createPageDocument,
+  createNode,
 } from '../../utils/page-builder-utils';
 import { NodeRendererComponent } from '../../components/node-renderer/node-renderer.component';
 import { PropertiesPanelComponent } from '../../components/properties-panel/properties-panel.component';
@@ -21,6 +23,14 @@ interface LibraryItem {
   type: NodeType;
   label: string;
   description: string;
+}
+
+interface LayoutPreset {
+  id: string;
+  label: string;
+  category: string;
+  thumbnail: string;
+  build: () => PageNode;
 }
 
 @Component({
@@ -100,6 +110,106 @@ export class BuilderComponent implements OnInit, OnDestroy {
     },
   ];
 
+  layoutGroups: { title: string; items: LayoutPreset[] }[] = [
+    {
+      title: 'Navigation',
+      items: [
+        {
+          id: 'nav-center',
+          label: 'Navbar Logo Center',
+          category: 'Navigation',
+          thumbnail: 'assets/layouts/navbar-center.svg',
+          build: () => this.buildNavbarCenter(),
+        },
+        {
+          id: 'nav-left',
+          label: 'Navbar Logo Left',
+          category: 'Navigation',
+          thumbnail: 'assets/layouts/navbar-left.svg',
+          build: () => this.buildNavbarLeft(),
+        },
+        {
+          id: 'nav-clean',
+          label: 'Navbar No Shadow',
+          category: 'Navigation',
+          thumbnail: 'assets/layouts/navbar-shadowless.svg',
+          build: () => this.buildNavbarNoShadow(),
+        },
+      ],
+    },
+    {
+      title: 'Hero',
+      items: [
+        {
+          id: 'hero-center',
+          label: 'Hero Heading Center',
+          category: 'Hero',
+          thumbnail: 'assets/layouts/hero-center.svg',
+          build: () => this.buildHeroCenter(),
+        },
+        {
+          id: 'hero-right',
+          label: 'Hero Heading Right',
+          category: 'Hero',
+          thumbnail: 'assets/layouts/hero-right.svg',
+          build: () => this.buildHeroRight(),
+        },
+      ],
+    },
+    {
+      title: 'Footer',
+      items: [
+        {
+          id: 'footer-subscribe',
+          label: 'Footer Subscribe',
+          category: 'Footer',
+          thumbnail: 'assets/layouts/footer-subscribe.svg',
+          build: () => this.buildFooterSubscribe(),
+        },
+        {
+          id: 'footer-links',
+          label: 'Footer Menu + Social',
+          category: 'Footer',
+          thumbnail: 'assets/layouts/footer-links.svg',
+          build: () => this.buildFooterLinks(),
+        },
+      ],
+    },
+    {
+      title: 'Sections',
+      items: [
+        {
+          id: 'features',
+          label: 'Feature Grid',
+          category: 'Sections',
+          thumbnail: 'assets/layouts/feature-grid.svg',
+          build: () => this.buildFeatureGrid(),
+        },
+        {
+          id: 'cta',
+          label: 'CTA Banner',
+          category: 'Sections',
+          thumbnail: 'assets/layouts/cta-banner.svg',
+          build: () => this.buildCtaBanner(),
+        },
+        {
+          id: 'testimonials',
+          label: 'Testimonials',
+          category: 'Sections',
+          thumbnail: 'assets/layouts/testimonials.svg',
+          build: () => this.buildTestimonials(),
+        },
+        {
+          id: 'pricing',
+          label: 'Pricing',
+          category: 'Sections',
+          thumbnail: 'assets/layouts/pricing.svg',
+          build: () => this.buildPricing(),
+        },
+      ],
+    },
+  ];
+
   projectPages: PageDocument[] = [];
   newPageName = '';
   showUnsavedModal = false;
@@ -131,6 +241,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     public builder: BuilderService,
     private dataService: FirebaseDataService,
     private storageService: FirebaseStorageService,
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -216,12 +327,460 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.builder.addNode(type, targetId);
   }
 
+  addLayout(preset: LayoutPreset): void {
+    if (!this.page) {
+      return;
+    }
+    const targetId = this.selectedNode && this.canAcceptChildren(this.selectedNode)
+      ? this.selectedNode.id
+      : this.page.root.id;
+    const layoutNode = preset.build();
+    this.builder.updateNode(targetId, (node) => {
+      node.children = node.children ?? [];
+      node.children.push(layoutNode);
+    });
+  }
+
   canAcceptChildren(node: PageNode): boolean {
     return ['header', 'footer', 'section', 'container', 'card', 'columns2', 'hero'].includes(node.type);
   }
 
+  private buildNavbarCenter(): PageNode {
+    const header = this.createHeader('Navbar Center', {
+      padding: '16px 24px',
+      backgroundColor: '#0f172a',
+      color: '#ffffff',
+    });
+    const nav = this.createContainer('Nav Row', {
+      display: 'grid',
+      gridTemplateColumns: '1fr auto 1fr',
+      alignItems: 'center',
+      gap: '16px',
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '0',
+    });
+    const left = this.createContainer('Left Links', {
+      display: 'flex',
+      gap: '16px',
+      alignItems: 'center',
+      padding: '0',
+    }, [
+      this.createText('Home'),
+      this.createText('Services'),
+      this.createText('Contact'),
+    ]);
+    const logo = this.createHeading('Brand', 'h4', { margin: '0', fontSize: '18px' });
+    const right = this.createContainer('Right CTA', {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      padding: '0',
+    }, [this.createButton('Get Started')]);
+    nav.children = [left, logo, right];
+    header.children = [nav];
+    return header;
+  }
+
+  private buildNavbarLeft(): PageNode {
+    const header = this.createHeader('Navbar Left', {
+      padding: '16px 24px',
+      backgroundColor: '#0f172a',
+      color: '#ffffff',
+    });
+    const nav = this.createContainer('Nav Row', {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: '16px',
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '0',
+    });
+    const logo = this.createHeading('Brand', 'h4', { margin: '0', fontSize: '18px' });
+    const links = this.createContainer('Links', {
+      display: 'flex',
+      gap: '16px',
+      alignItems: 'center',
+      padding: '0',
+    }, [
+      this.createText('Home'),
+      this.createText('Features'),
+      this.createText('Pricing'),
+    ]);
+    nav.children = [logo, links, this.createButton('Contact')];
+    header.children = [nav];
+    return header;
+  }
+
+  private buildNavbarNoShadow(): PageNode {
+    const header = this.createHeader('Navbar Clean', {
+      padding: '16px 24px',
+      backgroundColor: '#ffffff',
+      color: '#0f172a',
+      borderBottom: '1px solid #e2e8f0',
+    });
+    const nav = this.createContainer('Nav Row', {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: '16px',
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '0',
+    });
+    const logo = this.createHeading('Brand', 'h4', { margin: '0', fontSize: '18px' });
+    const links = this.createContainer('Links', {
+      display: 'flex',
+      gap: '16px',
+      alignItems: 'center',
+      padding: '0',
+    }, [
+      this.createText('Home', { color: '#0f172a' }),
+      this.createText('Docs', { color: '#0f172a' }),
+      this.createText('Contact', { color: '#0f172a' }),
+    ]);
+    nav.children = [logo, links, this.createButton('Sign Up', { backgroundColor: '#111827' })];
+    header.children = [nav];
+    return header;
+  }
+
+  private buildHeroCenter(): PageNode {
+    const section = this.createSection('Hero Center', {
+      padding: '96px 24px',
+      backgroundColor: '#0f172a',
+      color: '#ffffff',
+    });
+    const container = this.createContainer('Hero Content', {
+      maxWidth: '720px',
+      margin: '0 auto',
+      textAlign: 'center',
+      display: 'grid',
+      gap: '16px',
+      padding: '0',
+    }, [
+      this.createHeading('Build faster with Page Builder', 'h1', { margin: '0' }),
+      this.createText('Create beautiful layouts with reusable blocks and export clean code.', {
+        margin: '0',
+        color: '#cbd5f5',
+      }),
+      this.createButton('Get started', { alignSelf: 'center' }),
+    ]);
+    section.children = [container];
+    return section;
+  }
+
+  private buildHeroRight(): PageNode {
+    const section = this.createSection('Hero Right', {
+      padding: '96px 24px',
+      backgroundColor: '#0f172a',
+      color: '#ffffff',
+    });
+    const container = this.createContainer('Hero Grid', {
+      display: 'grid',
+      gridTemplateColumns: '1.1fr 0.9fr',
+      gap: '32px',
+      alignItems: 'center',
+      maxWidth: '1100px',
+      margin: '0 auto',
+      padding: '0',
+    });
+    const left = this.createContainer('Hero Text', {
+      display: 'grid',
+      gap: '16px',
+      padding: '0',
+    }, [
+      this.createHeading('Launch your next idea', 'h1', { margin: '0' }),
+      this.createText('Design, edit, and publish with a modern drag-and-drop workflow.', {
+        margin: '0',
+        color: '#cbd5f5',
+      }),
+      this.createButton('Start free', { alignSelf: 'start' }),
+    ]);
+    const image = createNode('image');
+    image.styles.default = {
+      ...image.styles.default,
+      borderRadius: '20px',
+      height: '320px',
+      objectFit: 'cover',
+    };
+    container.children = [left, image];
+    section.children = [container];
+    return section;
+  }
+
+  private buildFooterSubscribe(): PageNode {
+    const footer = this.createFooter('Footer Subscribe', {
+      padding: '48px 24px',
+      backgroundColor: '#0f172a',
+      color: '#cbd5f5',
+    });
+    const container = this.createContainer('Footer Row', {
+      display: 'grid',
+      gridTemplateColumns: '1fr auto',
+      gap: '24px',
+      alignItems: 'center',
+      maxWidth: '1100px',
+      margin: '0 auto',
+      padding: '0',
+    });
+    const left = this.createContainer('Footer Copy', {
+      display: 'grid',
+      gap: '8px',
+      padding: '0',
+    }, [
+      this.createHeading('Stay in the loop', 'h3', { margin: '0', color: '#ffffff', fontSize: '22px' }),
+      this.createText('Join our newsletter for product updates and tips.', { margin: '0' }),
+    ]);
+    const input = this.createContainer('Email Field', {
+      padding: '10px 18px',
+      borderRadius: '999px',
+      backgroundColor: '#111827',
+      color: '#94a3b8',
+    }, [this.createText('Enter your email', { margin: '0' })]);
+    const right = this.createContainer('Subscribe', {
+      display: 'flex',
+      gap: '12px',
+      alignItems: 'center',
+      padding: '0',
+    }, [input, this.createButton('Subscribe')]);
+    container.children = [left, right];
+    footer.children = [container];
+    return footer;
+  }
+
+  private buildFooterLinks(): PageNode {
+    const footer = this.createFooter('Footer Links', {
+      padding: '56px 24px',
+      backgroundColor: '#0f172a',
+      color: '#cbd5f5',
+    });
+    const container = this.createContainer('Footer Columns', {
+      display: 'grid',
+      gridTemplateColumns: '1.2fr 1fr 1fr',
+      gap: '24px',
+      maxWidth: '1100px',
+      margin: '0 auto',
+      padding: '0',
+    });
+    const col1 = this.createContainer('Brand', { display: 'grid', gap: '8px', padding: '0' }, [
+      this.createHeading('Brand', 'h4', { margin: '0', color: '#ffffff', fontSize: '18px' }),
+      this.createText('A flexible page builder for modern teams.', { margin: '0' }),
+    ]);
+    const menu = createNode('list');
+    menu.content = { text: 'Home\nFeatures\nPricing\nContact' };
+    menu.styles.default = { paddingLeft: '18px', margin: '0', color: '#cbd5f5' };
+    menu.meta = { name: 'Menu Links' };
+    const social = this.createContainer('Social', { display: 'grid', gap: '8px', padding: '0' }, [
+      this.createText('Follow us', { margin: '0' }),
+      this.createButton('Twitter', { padding: '8px 14px', borderRadius: '999px' }),
+      this.createButton('LinkedIn', { padding: '8px 14px', borderRadius: '999px' }),
+    ]);
+    container.children = [col1, menu, social];
+    footer.children = [container];
+    return footer;
+  }
+
+  private buildFeatureGrid(): PageNode {
+    const section = this.createSection('Feature Grid', {
+      padding: '80px 24px',
+      backgroundColor: '#f8fafc',
+    });
+    const container = this.createContainer('Feature Wrap', {
+      maxWidth: '1100px',
+      margin: '0 auto',
+      display: 'grid',
+      gap: '24px',
+      padding: '0',
+    }, [
+      this.createHeading('Everything you need', 'h2', { margin: '0' }),
+      this.createText('Launch pages quickly with reusable blocks and styles.', { margin: '0' }),
+    ]);
+    const grid = this.createContainer('Feature Cards', {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '16px',
+      padding: '0',
+    }, [createNode('card'), createNode('card'), createNode('card')]);
+    container.children = [...(container.children ?? []), grid];
+    section.children = [container];
+    return section;
+  }
+
+  private buildCtaBanner(): PageNode {
+    const section = this.createSection('CTA Banner', {
+      padding: '60px 24px',
+      backgroundColor: '#f8fafc',
+    });
+    const banner = this.createContainer('CTA', {
+      maxWidth: '1000px',
+      margin: '0 auto',
+      padding: '32px',
+      borderRadius: '20px',
+      backgroundColor: '#111827',
+      color: '#ffffff',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: '16px',
+    }, [
+      this.createHeading('Ready to publish?', 'h3', { margin: '0', fontSize: '24px' }),
+      this.createButton('Talk to sales'),
+    ]);
+    section.children = [banner];
+    return section;
+  }
+
+  private buildTestimonials(): PageNode {
+    const section = this.createSection('Testimonials', {
+      padding: '80px 24px',
+      backgroundColor: '#f8fafc',
+    });
+    const container = this.createContainer('Testimonials Wrap', {
+      maxWidth: '1100px',
+      margin: '0 auto',
+      display: 'grid',
+      gap: '20px',
+      padding: '0',
+    }, [
+      this.createHeading('Teams love it', 'h2', { margin: '0' }),
+      this.createText('Trusted by designers and product teams worldwide.', { margin: '0' }),
+    ]);
+    const grid = this.createContainer('Testimonials Grid', {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, 1fr)',
+      gap: '16px',
+      padding: '0',
+    }, [
+      this.createContainer('Quote 1', {
+        padding: '20px',
+        borderRadius: '16px',
+        backgroundColor: '#ffffff',
+        boxShadow: '0 10px 24px rgba(15, 23, 42, 0.08)',
+      }, [this.createText('“The builder saved us weeks of work.”', { margin: '0' })]),
+      this.createContainer('Quote 2', {
+        padding: '20px',
+        borderRadius: '16px',
+        backgroundColor: '#ffffff',
+        boxShadow: '0 10px 24px rgba(15, 23, 42, 0.08)',
+      }, [this.createText('“Clean export and beautiful layouts.”', { margin: '0' })]),
+    ]);
+    container.children = [...(container.children ?? []), grid];
+    section.children = [container];
+    return section;
+  }
+
+  private buildPricing(): PageNode {
+    const section = this.createSection('Pricing', {
+      padding: '80px 24px',
+      backgroundColor: '#ffffff',
+    });
+    const container = this.createContainer('Pricing Wrap', {
+      maxWidth: '1100px',
+      margin: '0 auto',
+      display: 'grid',
+      gap: '24px',
+      padding: '0',
+    }, [
+      this.createHeading('Simple pricing', 'h2', { margin: '0' }),
+      this.createText('Choose a plan that fits your team.', { margin: '0' }),
+    ]);
+    const cards = this.createContainer('Pricing Cards', {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '16px',
+      padding: '0',
+    }, [
+      this.createContainer('Starter', {
+        padding: '20px',
+        borderRadius: '16px',
+        backgroundColor: '#f8fafc',
+        border: '1px solid #e2e8f0',
+      }, [this.createHeading('Starter', 'h4', { margin: '0', fontSize: '18px' }), this.createText('$9 / month', { margin: '0' })]),
+      this.createContainer('Pro', {
+        padding: '20px',
+        borderRadius: '16px',
+        backgroundColor: '#eef2ff',
+        border: '1px solid #c7d2fe',
+      }, [this.createHeading('Pro', 'h4', { margin: '0', fontSize: '18px' }), this.createText('$29 / month', { margin: '0' })]),
+      this.createContainer('Team', {
+        padding: '20px',
+        borderRadius: '16px',
+        backgroundColor: '#f8fafc',
+        border: '1px solid #e2e8f0',
+      }, [this.createHeading('Team', 'h4', { margin: '0', fontSize: '18px' }), this.createText('$59 / month', { margin: '0' })]),
+    ]);
+    container.children = [...(container.children ?? []), cards];
+    section.children = [container];
+    return section;
+  }
+
+  private createSection(name: string, styles: Record<string, string>): PageNode {
+    const node = createNode('section');
+    node.meta = { name };
+    node.styles.default = { ...node.styles.default, ...styles };
+    node.children = [];
+    return node;
+  }
+
+  private createHeader(name: string, styles: Record<string, string>): PageNode {
+    const node = createNode('header');
+    node.meta = { name };
+    node.styles.default = { ...node.styles.default, ...styles };
+    node.children = [];
+    return node;
+  }
+
+  private createFooter(name: string, styles: Record<string, string>): PageNode {
+    const node = createNode('footer');
+    node.meta = { name };
+    node.styles.default = { ...node.styles.default, ...styles };
+    node.children = [];
+    return node;
+  }
+
+  private createContainer(
+    name: string,
+    styles: Record<string, string>,
+    children?: PageNode[],
+  ): PageNode {
+    const node = createNode('container');
+    node.meta = { name };
+    node.styles.default = { ...node.styles.default, ...styles };
+    node.children = children ?? [];
+    return node;
+  }
+
+  private createHeading(
+    text: string,
+    tag: NonNullable<PageNode['content']>['tag'],
+    styles?: Record<string, string>,
+  ): PageNode {
+    const node = createNode('heading');
+    node.content = { text, tag };
+    node.meta = { name: text };
+    node.styles.default = { ...node.styles.default, ...(styles ?? {}) };
+    return node;
+  }
+
+  private createText(text: string, styles?: Record<string, string>): PageNode {
+    const node = createNode('text');
+    node.content = { text, tag: 'p' };
+    node.meta = { name: 'Text' };
+    node.styles.default = { ...node.styles.default, ...(styles ?? {}) };
+    return node;
+  }
+
+  private createButton(text: string, styles?: Record<string, string>): PageNode {
+    const node = createNode('button');
+    node.content = { text, href: '#', target: '_self' };
+    node.meta = { name: text };
+    node.styles.default = { ...node.styles.default, ...(styles ?? {}) };
+    return node;
+  }
+
   save(): void {
     this.builder.save();
+    this.toast.show('Page saved.', 'success');
   }
 
   undo(): void {
@@ -244,7 +803,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
     if (!this.projectId || !this.pageId) {
       return;
     }
-    this.router.navigate(['/preview', this.projectId, this.pageId]);
+    const url = this.router.serializeUrl(
+      this.router.createUrlTree(['/preview', this.projectId, this.pageId]),
+    );
+    window.open(url, '_blank', 'noopener');
   }
 
   deleteSelected(): void {
