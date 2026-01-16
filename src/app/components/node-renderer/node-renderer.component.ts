@@ -15,10 +15,12 @@ export class NodeRendererComponent {
   @Input() preview = false;
   @Input() parentId: string | null = null;
   @Input() index = 0;
+  @Input() viewport: 'desktop' | 'tablet' | 'mobile' = 'desktop';
 
   @Output() selectNode = new EventEmitter<PageNode>();
   @Output() startDrag = new EventEmitter<{ node: PageNode; event: MouseEvent }>();
   @Output() startResize = new EventEmitter<{ node: PageNode; event: MouseEvent }>();
+  @Output() quickUpdate = new EventEmitter<{ nodeId: string; field: string; value: string }>();
   @Output()
   reorder = new EventEmitter<{
     nodeId: string;
@@ -27,6 +29,7 @@ export class NodeRendererComponent {
     toParentId: string;
     toIndex: number;
   }>();
+  quickOpen = false;
 
   get isSelected(): boolean {
     return this.selectedId === this.node.id;
@@ -39,11 +42,16 @@ export class NodeRendererComponent {
     }
   }
 
+  toggleQuick(event: MouseEvent): void {
+    event.stopPropagation();
+    this.quickOpen = !this.quickOpen;
+  }
+
   handleMouseDown(event: MouseEvent): void {
     if (this.preview || !this.isSelected) {
       return;
     }
-    if (this.node.styles.default['position'] === 'absolute') {
+    if (this.computedStyles['position'] === 'absolute') {
       this.startDrag.emit({ node: this.node, event });
     }
   }
@@ -53,7 +61,7 @@ export class NodeRendererComponent {
     if (this.preview || !this.isSelected) {
       return;
     }
-    if (this.node.styles.default['position'] === 'absolute') {
+    if (this.computedStyles['position'] === 'absolute') {
       this.startResize.emit({ node: this.node, event });
     }
   }
@@ -63,6 +71,31 @@ export class NodeRendererComponent {
       .split('\n')
       .map((item) => item.trim())
       .filter((item) => item.length > 0);
+  }
+
+  get computedStyles(): Record<string, string> {
+    const base: Record<string, string> = {};
+    const overrides: Record<string, string> = {};
+    const tabletPrefix = 'bp-tablet-';
+    const mobilePrefix = 'bp-mobile-';
+    Object.entries(this.node.styles.default).forEach(([key, value]) => {
+      if (key.startsWith(tabletPrefix) || key.startsWith(mobilePrefix)) {
+        if (this.viewport === 'tablet' && key.startsWith(tabletPrefix)) {
+          overrides[key.replace(tabletPrefix, '')] = value;
+        }
+        if (this.viewport === 'mobile' && key.startsWith(mobilePrefix)) {
+          overrides[key.replace(mobilePrefix, '')] = value;
+        }
+        return;
+      }
+      base[key] = value;
+    });
+    return { ...base, ...overrides };
+  }
+
+  handleQuickInput(field: string, event: Event): void {
+    const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    this.quickUpdate.emit({ nodeId: this.node.id, field, value: target.value });
   }
 
   handleDragStart(event: DragEvent): void {

@@ -302,16 +302,46 @@ export const buildHoverStyles = (root: PageNode): string =>
     })
     .join('\n');
 
-export const buildDefaultStyles = (root: PageNode): string =>
-  collectNodes(root)
-    .map((node) => {
-      const rules = Object.entries(node.styles.default)
-        .filter(([, value]) => value)
-        .map(([key, value]) => `${toKebabCase(key)}: ${value};`)
-        .join(' ');
-      return `.node-${node.id} { ${rules} }`;
-    })
-    .join('\n');
+export const buildDefaultStyles = (root: PageNode): string => {
+  const baseRules: string[] = [];
+  const tabletRules: string[] = [];
+  const mobileRules: string[] = [];
+
+  collectNodes(root).forEach((node) => {
+    const baseEntries: [string, string][] = [];
+    const tabletEntries: [string, string][] = [];
+    const mobileEntries: [string, string][] = [];
+    Object.entries(node.styles.default).forEach(([key, value]) => {
+      if (!value) {
+        return;
+      }
+      if (key.startsWith('bp-tablet-')) {
+        tabletEntries.push([key.replace('bp-tablet-', ''), value]);
+      } else if (key.startsWith('bp-mobile-')) {
+        mobileEntries.push([key.replace('bp-mobile-', ''), value]);
+      } else {
+        baseEntries.push([key, value]);
+      }
+    });
+
+    if (baseEntries.length) {
+      const rules = baseEntries.map(([key, value]) => `${toKebabCase(key)}: ${value};`).join(' ');
+      baseRules.push(`.node-${node.id} { ${rules} }`);
+    }
+    if (tabletEntries.length) {
+      const rules = tabletEntries.map(([key, value]) => `${toKebabCase(key)}: ${value};`).join(' ');
+      tabletRules.push(`.node-${node.id} { ${rules} }`);
+    }
+    if (mobileEntries.length) {
+      const rules = mobileEntries.map(([key, value]) => `${toKebabCase(key)}: ${value};`).join(' ');
+      mobileRules.push(`.node-${node.id} { ${rules} }`);
+    }
+  });
+
+  const tabletBlock = tabletRules.length ? `@media (max-width: 1024px) { ${tabletRules.join(' ')} }` : '';
+  const mobileBlock = mobileRules.length ? `@media (max-width: 640px) { ${mobileRules.join(' ')} }` : '';
+  return [baseRules.join('\n'), tabletBlock, mobileBlock].filter(Boolean).join('\n');
+};
 
 export const toKebabCase = (value: string): string =>
   value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);

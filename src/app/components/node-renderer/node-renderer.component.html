@@ -3,7 +3,7 @@
     *ngSwitchCase="'header'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -18,9 +18,11 @@
       [preview]="preview"
       [parentId]="node.id"
       [index]="i"
+      [viewport]="viewport"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (quickUpdate)="quickUpdate.emit($event)"
       (reorder)="reorder.emit($event)"
     />
     <div
@@ -32,7 +34,7 @@
       <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
     </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -42,7 +44,7 @@
     *ngSwitchCase="'footer'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -57,9 +59,11 @@
       [preview]="preview"
       [parentId]="node.id"
       [index]="i"
+      [viewport]="viewport"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (quickUpdate)="quickUpdate.emit($event)"
       (reorder)="reorder.emit($event)"
     />
     <div
@@ -71,7 +75,7 @@
       <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
     </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -81,7 +85,7 @@
     *ngSwitchCase="'section'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -96,9 +100,11 @@
       [preview]="preview"
       [parentId]="node.id"
       [index]="i"
+      [viewport]="viewport"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (quickUpdate)="quickUpdate.emit($event)"
       (reorder)="reorder.emit($event)"
     />
     <div
@@ -110,7 +116,7 @@
       <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
     </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -120,7 +126,7 @@
     *ngSwitchCase="'container'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -135,9 +141,11 @@
       [preview]="preview"
       [parentId]="node.id"
       [index]="i"
+      [viewport]="viewport"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (quickUpdate)="quickUpdate.emit($event)"
       (reorder)="reorder.emit($event)"
     />
     <div
@@ -149,7 +157,7 @@
       <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
     </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -161,7 +169,7 @@
         *ngSwitchCase="'h1'"
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
-        [ngStyle]="node.styles.default"
+        [ngStyle]="computedStyles"
         [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
@@ -170,8 +178,29 @@
         (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
+        <button
+          *ngIf="isSelected && !preview"
+          type="button"
+          class="quick-toggle"
+          (click)="toggleQuick($event)"
+        >
+          ⚙
+        </button>
+        <span *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+          <label>Text</label>
+          <input [value]="node.content?.text" (input)="handleQuickInput('text', $event)" />
+          <label>Tag</label>
+          <select [value]="node.content?.tag ?? 'h2'" (change)="handleQuickInput('tag', $event)">
+            <option value="h1">h1</option>
+            <option value="h2">h2</option>
+            <option value="h3">h3</option>
+            <option value="h4">h4</option>
+            <option value="h5">h5</option>
+            <option value="h6">h6</option>
+          </select>
+        </span>
         <span
-          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+          *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -180,7 +209,7 @@
         *ngSwitchCase="'h2'"
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
-        [ngStyle]="node.styles.default"
+        [ngStyle]="computedStyles"
         [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
@@ -189,8 +218,29 @@
         (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
+        <button
+          *ngIf="isSelected && !preview"
+          type="button"
+          class="quick-toggle"
+          (click)="toggleQuick($event)"
+        >
+          ⚙
+        </button>
+        <span *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+          <label>Text</label>
+          <input [value]="node.content?.text" (input)="handleQuickInput('text', $event)" />
+          <label>Tag</label>
+          <select [value]="node.content?.tag ?? 'h2'" (change)="handleQuickInput('tag', $event)">
+            <option value="h1">h1</option>
+            <option value="h2">h2</option>
+            <option value="h3">h3</option>
+            <option value="h4">h4</option>
+            <option value="h5">h5</option>
+            <option value="h6">h6</option>
+          </select>
+        </span>
         <span
-          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+          *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -199,7 +249,7 @@
         *ngSwitchCase="'h3'"
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
-        [ngStyle]="node.styles.default"
+        [ngStyle]="computedStyles"
         [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
@@ -208,8 +258,29 @@
         (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
+        <button
+          *ngIf="isSelected && !preview"
+          type="button"
+          class="quick-toggle"
+          (click)="toggleQuick($event)"
+        >
+          ⚙
+        </button>
+        <span *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+          <label>Text</label>
+          <input [value]="node.content?.text" (input)="handleQuickInput('text', $event)" />
+          <label>Tag</label>
+          <select [value]="node.content?.tag ?? 'h2'" (change)="handleQuickInput('tag', $event)">
+            <option value="h1">h1</option>
+            <option value="h2">h2</option>
+            <option value="h3">h3</option>
+            <option value="h4">h4</option>
+            <option value="h5">h5</option>
+            <option value="h6">h6</option>
+          </select>
+        </span>
         <span
-          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+          *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -218,7 +289,7 @@
         *ngSwitchCase="'h4'"
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
-        [ngStyle]="node.styles.default"
+        [ngStyle]="computedStyles"
         [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
@@ -227,8 +298,29 @@
         (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
+        <button
+          *ngIf="isSelected && !preview"
+          type="button"
+          class="quick-toggle"
+          (click)="toggleQuick($event)"
+        >
+          ⚙
+        </button>
+        <span *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+          <label>Text</label>
+          <input [value]="node.content?.text" (input)="handleQuickInput('text', $event)" />
+          <label>Tag</label>
+          <select [value]="node.content?.tag ?? 'h2'" (change)="handleQuickInput('tag', $event)">
+            <option value="h1">h1</option>
+            <option value="h2">h2</option>
+            <option value="h3">h3</option>
+            <option value="h4">h4</option>
+            <option value="h5">h5</option>
+            <option value="h6">h6</option>
+          </select>
+        </span>
         <span
-          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+          *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -237,7 +329,7 @@
         *ngSwitchCase="'h5'"
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
-        [ngStyle]="node.styles.default"
+        [ngStyle]="computedStyles"
         [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
@@ -246,8 +338,29 @@
         (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
+        <button
+          *ngIf="isSelected && !preview"
+          type="button"
+          class="quick-toggle"
+          (click)="toggleQuick($event)"
+        >
+          ⚙
+        </button>
+        <span *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+          <label>Text</label>
+          <input [value]="node.content?.text" (input)="handleQuickInput('text', $event)" />
+          <label>Tag</label>
+          <select [value]="node.content?.tag ?? 'h2'" (change)="handleQuickInput('tag', $event)">
+            <option value="h1">h1</option>
+            <option value="h2">h2</option>
+            <option value="h3">h3</option>
+            <option value="h4">h4</option>
+            <option value="h5">h5</option>
+            <option value="h6">h6</option>
+          </select>
+        </span>
         <span
-          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+          *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -256,7 +369,7 @@
         *ngSwitchCase="'h6'"
         class="node node-{{ node.id }}"
         [class.node--selected]="isSelected"
-        [ngStyle]="node.styles.default"
+        [ngStyle]="computedStyles"
         [attr.draggable]="!preview && parentId ? true : null"
         (click)="handleSelect($event)"
         (mousedown)="handleMouseDown($event)"
@@ -265,8 +378,29 @@
         (drop)="handleDrop($event)"
       >
         {{ node.content?.text }}
+        <button
+          *ngIf="isSelected && !preview"
+          type="button"
+          class="quick-toggle"
+          (click)="toggleQuick($event)"
+        >
+          ⚙
+        </button>
+        <span *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+          <label>Text</label>
+          <input [value]="node.content?.text" (input)="handleQuickInput('text', $event)" />
+          <label>Tag</label>
+          <select [value]="node.content?.tag ?? 'h2'" (change)="handleQuickInput('tag', $event)">
+            <option value="h1">h1</option>
+            <option value="h2">h2</option>
+            <option value="h3">h3</option>
+            <option value="h4">h4</option>
+            <option value="h5">h5</option>
+            <option value="h6">h6</option>
+          </select>
+        </span>
         <span
-          *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+          *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
           class="resize-handle"
           (mousedown)="handleResizeMouseDown($event)"
         ></span>
@@ -278,7 +412,7 @@
     *ngSwitchCase="'text'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -288,32 +422,62 @@
   >
     {{ node.content?.text }}
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview"
+      class="quick-toggle"
+      role="button"
+      tabindex="0"
+      (click)="toggleQuick($event)"
+    >
+      ⚙
+    </span>
+    <span *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+      <label>Text</label>
+      <textarea [value]="node.content?.text" (input)="handleQuickInput('text', $event)"></textarea>
+    </span>
+    <span
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
   </p>
 
-  <img
-    *ngSwitchCase="'image'"
-    class="node node-{{ node.id }}"
-    [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
-    [src]="node.content?.src"
-    [alt]="node.content?.alt"
-    [attr.draggable]="!preview && parentId ? true : null"
-    (click)="handleSelect($event)"
-    (mousedown)="handleMouseDown($event)"
-    (dragstart)="handleDragStart($event)"
-    (dragover)="handleDragOver($event)"
-    (drop)="handleDrop($event)"
-  />
+  <div *ngSwitchCase="'image'" class="node-wrapper">
+    <img
+      class="node node-{{ node.id }}"
+      [class.node--selected]="isSelected"
+      [ngStyle]="computedStyles"
+      [src]="node.content?.src"
+      [alt]="node.content?.alt"
+      [attr.draggable]="!preview && parentId ? true : null"
+      (click)="handleSelect($event)"
+      (mousedown)="handleMouseDown($event)"
+      (dragstart)="handleDragStart($event)"
+      (dragover)="handleDragOver($event)"
+      (drop)="handleDrop($event)"
+    />
+    <button
+      *ngIf="isSelected && !preview"
+      type="button"
+      class="quick-toggle"
+      (click)="toggleQuick($event)"
+    >
+      ⚙
+    </button>
+    <div *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+      <label>Image URL</label>
+      <input [value]="node.content?.src" (input)="handleQuickInput('src', $event)" />
+      <label>Alt</label>
+      <input [value]="node.content?.alt" (input)="handleQuickInput('alt', $event)" />
+      <label>Width</label>
+      <input [value]="computedStyles['width']" (input)="handleQuickInput('style:width', $event)" />
+    </div>
+  </div>
 
   <a
     *ngSwitchCase="'button'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [href]="preview ? node.content?.href : 'javascript:void(0)'"
     [attr.target]="node.content?.target"
     [attr.draggable]="!preview && parentId ? true : null"
@@ -324,8 +488,27 @@
     (drop)="handleDrop($event)"
   >
     {{ node.content?.text }}
+    <button
+      *ngIf="isSelected && !preview"
+      type="button"
+      class="quick-toggle"
+      (click)="toggleQuick($event)"
+    >
+      ⚙
+    </button>
+    <span *ngIf="isSelected && quickOpen && !preview" class="quick-panel" (click)="$event.stopPropagation()">
+      <label>Label</label>
+      <input [value]="node.content?.text" (input)="handleQuickInput('text', $event)" />
+      <label>Link</label>
+      <input [value]="node.content?.href" (input)="handleQuickInput('href', $event)" />
+      <label>Target</label>
+      <select [value]="node.content?.target ?? '_self'" (change)="handleQuickInput('target', $event)">
+        <option value="_self">Same tab</option>
+        <option value="_blank">New tab</option>
+      </select>
+    </span>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -335,7 +518,7 @@
     *ngSwitchCase="'divider'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -348,7 +531,7 @@
     *ngSwitchCase="'spacer'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -361,7 +544,7 @@
     *ngSwitchCase="'list'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -371,7 +554,7 @@
   >
     <li *ngFor="let item of listItems">{{ item }}</li>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -381,7 +564,7 @@
     *ngSwitchCase="'card'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -396,9 +579,11 @@
       [preview]="preview"
       [parentId]="node.id"
       [index]="i"
+      [viewport]="viewport"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (quickUpdate)="quickUpdate.emit($event)"
       (reorder)="reorder.emit($event)"
     />
     <div
@@ -410,7 +595,7 @@
       <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
     </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -420,7 +605,7 @@
     *ngSwitchCase="'columns2'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -435,9 +620,11 @@
       [preview]="preview"
       [parentId]="node.id"
       [index]="i"
+      [viewport]="viewport"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (quickUpdate)="quickUpdate.emit($event)"
       (reorder)="reorder.emit($event)"
     />
     <div
@@ -449,7 +636,7 @@
       <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
     </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>
@@ -459,7 +646,7 @@
     *ngSwitchCase="'hero'"
     class="node node-{{ node.id }}"
     [class.node--selected]="isSelected"
-    [ngStyle]="node.styles.default"
+    [ngStyle]="computedStyles"
     [attr.draggable]="!preview && parentId ? true : null"
     (click)="handleSelect($event)"
     (mousedown)="handleMouseDown($event)"
@@ -474,9 +661,11 @@
       [preview]="preview"
       [parentId]="node.id"
       [index]="i"
+      [viewport]="viewport"
       (selectNode)="selectNode.emit($event)"
       (startDrag)="startDrag.emit($event)"
       (startResize)="startResize.emit($event)"
+      (quickUpdate)="quickUpdate.emit($event)"
       (reorder)="reorder.emit($event)"
     />
     <div
@@ -488,7 +677,7 @@
       <span *ngIf="(node.children ?? []).length === 0">Drop here</span>
     </div>
     <span
-      *ngIf="isSelected && !preview && node.styles.default['position'] === 'absolute'"
+      *ngIf="isSelected && !preview && computedStyles['position'] === 'absolute'"
       class="resize-handle"
       (mousedown)="handleResizeMouseDown($event)"
     ></span>

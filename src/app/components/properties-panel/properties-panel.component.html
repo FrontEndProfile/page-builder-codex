@@ -89,7 +89,7 @@
       <div class="section-body">
         <div class="control-row">
           <label>Display</label>
-          <select [ngModel]="node.styles.default['display']" (ngModelChange)="updateStyle('display', $event)">
+          <select [ngModel]="getStyleValue('display', 'block')" (ngModelChange)="updateStyle('display', $event)">
             <option value="block">Block</option>
             <option value="flex">Flex</option>
             <option value="grid">Grid</option>
@@ -101,26 +101,26 @@
           </select>
         </div>
 
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'flex' || node.styles.default['display'] === 'inline-flex'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'flex' || getStyleValue('display') === 'inline-flex'">
           <label>Direction</label>
-          <select [ngModel]="node.styles.default['flexDirection']" (ngModelChange)="updateStyle('flexDirection', $event)">
+          <select [ngModel]="getStyleValue('flexDirection')" (ngModelChange)="updateStyle('flexDirection', $event)">
             <option value="row">Row</option>
             <option value="row-reverse">Row reverse</option>
             <option value="column">Column</option>
             <option value="column-reverse">Column reverse</option>
           </select>
         </div>
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'flex' || node.styles.default['display'] === 'inline-flex'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'flex' || getStyleValue('display') === 'inline-flex'">
           <label>Wrap</label>
-          <select [ngModel]="node.styles.default['flexWrap']" (ngModelChange)="updateStyle('flexWrap', $event)">
+          <select [ngModel]="getStyleValue('flexWrap')" (ngModelChange)="updateStyle('flexWrap', $event)">
             <option value="nowrap">No wrap</option>
             <option value="wrap">Wrap</option>
             <option value="wrap-reverse">Wrap reverse</option>
           </select>
         </div>
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'flex' || node.styles.default['display'] === 'inline-flex'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'flex' || getStyleValue('display') === 'inline-flex'">
           <label>Justify</label>
-          <select [ngModel]="node.styles.default['justifyContent']" (ngModelChange)="updateStyle('justifyContent', $event)">
+          <select [ngModel]="getStyleValue('justifyContent')" (ngModelChange)="updateStyle('justifyContent', $event)">
             <option value="flex-start">Start</option>
             <option value="center">Center</option>
             <option value="flex-end">End</option>
@@ -129,18 +129,18 @@
             <option value="space-evenly">Space evenly</option>
           </select>
         </div>
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'flex' || node.styles.default['display'] === 'inline-flex'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'flex' || getStyleValue('display') === 'inline-flex'">
           <label>Align</label>
-          <select [ngModel]="node.styles.default['alignItems']" (ngModelChange)="updateStyle('alignItems', $event)">
+          <select [ngModel]="getStyleValue('alignItems')" (ngModelChange)="updateStyle('alignItems', $event)">
             <option value="stretch">Stretch</option>
             <option value="flex-start">Start</option>
             <option value="center">Center</option>
             <option value="flex-end">End</option>
           </select>
         </div>
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'flex' || node.styles.default['display'] === 'inline-flex'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'flex' || getStyleValue('display') === 'inline-flex'">
           <label>Align content</label>
-          <select [ngModel]="node.styles.default['alignContent']" (ngModelChange)="updateStyle('alignContent', $event)">
+          <select [ngModel]="getStyleValue('alignContent')" (ngModelChange)="updateStyle('alignContent', $event)">
             <option value="stretch">Stretch</option>
             <option value="flex-start">Start</option>
             <option value="center">Center</option>
@@ -150,34 +150,34 @@
           </select>
         </div>
 
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'grid' || node.styles.default['display'] === 'inline-grid'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'grid' || getStyleValue('display') === 'inline-grid'">
           <label>Columns</label>
           <input
-            [ngModel]="node.styles.default['gridTemplateColumns']"
+            [ngModel]="getStyleValue('gridTemplateColumns')"
             (ngModelChange)="updateStyle('gridTemplateColumns', $event)"
             placeholder="repeat(2, 1fr)"
           />
         </div>
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'grid' || node.styles.default['display'] === 'inline-grid'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'grid' || getStyleValue('display') === 'inline-grid'">
           <label>Rows</label>
           <input
-            [ngModel]="node.styles.default['gridTemplateRows']"
+            [ngModel]="getStyleValue('gridTemplateRows')"
             (ngModelChange)="updateStyle('gridTemplateRows', $event)"
             placeholder="auto"
           />
         </div>
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'grid' || node.styles.default['display'] === 'inline-grid'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'grid' || getStyleValue('display') === 'inline-grid'">
           <label>Justify items</label>
-          <select [ngModel]="node.styles.default['justifyItems']" (ngModelChange)="updateStyle('justifyItems', $event)">
+          <select [ngModel]="getStyleValue('justifyItems')" (ngModelChange)="updateStyle('justifyItems', $event)">
             <option value="stretch">Stretch</option>
             <option value="start">Start</option>
             <option value="center">Center</option>
             <option value="end">End</option>
           </select>
         </div>
-        <div class="control-row" *ngIf="node.styles.default['display'] === 'grid' || node.styles.default['display'] === 'inline-grid'">
+        <div class="control-row" *ngIf="getStyleValue('display') === 'grid' || getStyleValue('display') === 'inline-grid'">
           <label>Align items</label>
-          <select [ngModel]="node.styles.default['alignItems']" (ngModelChange)="updateStyle('alignItems', $event)">
+          <select [ngModel]="getStyleValue('alignItems')" (ngModelChange)="updateStyle('alignItems', $event)">
             <option value="stretch">Stretch</option>
             <option value="start">Start</option>
             <option value="center">Center</option>
@@ -186,7 +186,7 @@
         </div>
         <div class="control-row">
           <label>Gap</label>
-          <input [ngModel]="node.styles.default['gap']" (ngModelChange)="updateStyle('gap', $event)" placeholder="16px" />
+          <input [ngModel]="getStyleValue('gap')" (ngModelChange)="updateStyle('gap', $event)" placeholder="16px" />
         </div>
       </div>
     </details>
@@ -200,23 +200,25 @@
             {{ linkMargin ? 'Linked' : 'Unlinked' }}
           </button>
         </div>
-        <div class="grid spacing-grid">
-          <div class="control-row">
-            <label>Top</label>
-            <input [ngModel]="getStyleValue('marginTop')" (ngModelChange)="updateSpacing('margin', 'Top', $event)" />
-          </div>
-          <div class="control-row">
-            <label>Right</label>
-            <input [ngModel]="getStyleValue('marginRight')" (ngModelChange)="updateSpacing('margin', 'Right', $event)" />
-          </div>
-          <div class="control-row">
-            <label>Bottom</label>
-            <input [ngModel]="getStyleValue('marginBottom')" (ngModelChange)="updateSpacing('margin', 'Bottom', $event)" />
-          </div>
-          <div class="control-row">
-            <label>Left</label>
-            <input [ngModel]="getStyleValue('marginLeft')" (ngModelChange)="updateSpacing('margin', 'Left', $event)" />
-          </div>
+        <div class="control-row" *ngIf="linkMargin">
+          <label>All</label>
+          <input [ngModel]="getLinkedSpacingValue('margin')" (ngModelChange)="updateSpacing('margin', 'Top', $event)" />
+        </div>
+        <div class="control-row" *ngIf="!linkMargin">
+          <label>Top</label>
+          <input [ngModel]="getStyleValue('marginTop')" (ngModelChange)="updateSpacing('margin', 'Top', $event)" />
+        </div>
+        <div class="control-row" *ngIf="!linkMargin">
+          <label>Right</label>
+          <input [ngModel]="getStyleValue('marginRight')" (ngModelChange)="updateSpacing('margin', 'Right', $event)" />
+        </div>
+        <div class="control-row" *ngIf="!linkMargin">
+          <label>Bottom</label>
+          <input [ngModel]="getStyleValue('marginBottom')" (ngModelChange)="updateSpacing('margin', 'Bottom', $event)" />
+        </div>
+        <div class="control-row" *ngIf="!linkMargin">
+          <label>Left</label>
+          <input [ngModel]="getStyleValue('marginLeft')" (ngModelChange)="updateSpacing('margin', 'Left', $event)" />
         </div>
 
         <div class="section-title">
@@ -225,26 +227,25 @@
             {{ linkPadding ? 'Linked' : 'Unlinked' }}
           </button>
         </div>
-        <div class="grid spacing-grid">
-          <div class="control-row">
-            <label>Top</label>
-            <input [ngModel]="getStyleValue('paddingTop')" (ngModelChange)="updateSpacing('padding', 'Top', $event)" />
-          </div>
-          <div class="control-row">
-            <label>Right</label>
-            <input [ngModel]="getStyleValue('paddingRight')" (ngModelChange)="updateSpacing('padding', 'Right', $event)" />
-          </div>
-          <div class="control-row">
-            <label>Bottom</label>
-            <input
-              [ngModel]="getStyleValue('paddingBottom')"
-              (ngModelChange)="updateSpacing('padding', 'Bottom', $event)"
-            />
-          </div>
-          <div class="control-row">
-            <label>Left</label>
-            <input [ngModel]="getStyleValue('paddingLeft')" (ngModelChange)="updateSpacing('padding', 'Left', $event)" />
-          </div>
+        <div class="control-row" *ngIf="linkPadding">
+          <label>All</label>
+          <input [ngModel]="getLinkedSpacingValue('padding')" (ngModelChange)="updateSpacing('padding', 'Top', $event)" />
+        </div>
+        <div class="control-row" *ngIf="!linkPadding">
+          <label>Top</label>
+          <input [ngModel]="getStyleValue('paddingTop')" (ngModelChange)="updateSpacing('padding', 'Top', $event)" />
+        </div>
+        <div class="control-row" *ngIf="!linkPadding">
+          <label>Right</label>
+          <input [ngModel]="getStyleValue('paddingRight')" (ngModelChange)="updateSpacing('padding', 'Right', $event)" />
+        </div>
+        <div class="control-row" *ngIf="!linkPadding">
+          <label>Bottom</label>
+          <input [ngModel]="getStyleValue('paddingBottom')" (ngModelChange)="updateSpacing('padding', 'Bottom', $event)" />
+        </div>
+        <div class="control-row" *ngIf="!linkPadding">
+          <label>Left</label>
+          <input [ngModel]="getStyleValue('paddingLeft')" (ngModelChange)="updateSpacing('padding', 'Left', $event)" />
         </div>
       </div>
     </details>
@@ -254,31 +255,31 @@
       <div class="section-body">
         <div class="control-row">
           <label>Width</label>
-          <input [ngModel]="node.styles.default['width']" (ngModelChange)="updateStyle('width', $event)" placeholder="auto" />
+          <input [ngModel]="getStyleValue('width')" (ngModelChange)="updateStyle('width', $event)" placeholder="auto" />
         </div>
         <div class="control-row">
           <label>Height</label>
-          <input [ngModel]="node.styles.default['height']" (ngModelChange)="updateStyle('height', $event)" placeholder="auto" />
+          <input [ngModel]="getStyleValue('height')" (ngModelChange)="updateStyle('height', $event)" placeholder="auto" />
         </div>
         <div class="control-row">
           <label>Min width</label>
-          <input [ngModel]="node.styles.default['minWidth']" (ngModelChange)="updateStyle('minWidth', $event)" placeholder="0" />
+          <input [ngModel]="getStyleValue('minWidth')" (ngModelChange)="updateStyle('minWidth', $event)" placeholder="0" />
         </div>
         <div class="control-row">
           <label>Min height</label>
-          <input [ngModel]="node.styles.default['minHeight']" (ngModelChange)="updateStyle('minHeight', $event)" placeholder="0" />
+          <input [ngModel]="getStyleValue('minHeight')" (ngModelChange)="updateStyle('minHeight', $event)" placeholder="0" />
         </div>
         <div class="control-row">
           <label>Max width</label>
-          <input [ngModel]="node.styles.default['maxWidth']" (ngModelChange)="updateStyle('maxWidth', $event)" placeholder="none" />
+          <input [ngModel]="getStyleValue('maxWidth')" (ngModelChange)="updateStyle('maxWidth', $event)" placeholder="none" />
         </div>
         <div class="control-row">
           <label>Max height</label>
-          <input [ngModel]="node.styles.default['maxHeight']" (ngModelChange)="updateStyle('maxHeight', $event)" placeholder="none" />
+          <input [ngModel]="getStyleValue('maxHeight')" (ngModelChange)="updateStyle('maxHeight', $event)" placeholder="none" />
         </div>
         <div class="control-row">
           <label>Overflow</label>
-          <select [ngModel]="node.styles.default['overflow']" (ngModelChange)="updateStyle('overflow', $event)">
+          <select [ngModel]="getStyleValue('overflow')" (ngModelChange)="updateStyle('overflow', $event)">
             <option value="visible">Visible</option>
             <option value="hidden">Hidden</option>
             <option value="scroll">Scroll</option>
@@ -287,7 +288,7 @@
         </div>
         <div class="control-row" *ngIf="node.type === 'image'">
           <label>Object fit</label>
-          <select [ngModel]="node.styles.default['objectFit']" (ngModelChange)="updateStyle('objectFit', $event)">
+          <select [ngModel]="getStyleValue('objectFit')" (ngModelChange)="updateStyle('objectFit', $event)">
             <option value="cover">Cover</option>
             <option value="contain">Contain</option>
             <option value="fill">Fill</option>
@@ -302,7 +303,7 @@
       <div class="section-body">
         <div class="control-row">
           <label>Position</label>
-          <select [ngModel]="node.styles.default['position']" (ngModelChange)="updateStyle('position', $event)">
+          <select [ngModel]="getStyleValue('position', 'static')" (ngModelChange)="updateStyle('position', $event)">
             <option value="static">Static</option>
             <option value="relative">Relative</option>
             <option value="absolute">Absolute</option>
@@ -312,23 +313,23 @@
         </div>
         <div class="control-row">
           <label>Top</label>
-          <input [ngModel]="node.styles.default['top']" (ngModelChange)="updateStyle('top', $event)" />
+          <input [ngModel]="getStyleValue('top')" (ngModelChange)="updateStyle('top', $event)" />
         </div>
         <div class="control-row">
           <label>Right</label>
-          <input [ngModel]="node.styles.default['right']" (ngModelChange)="updateStyle('right', $event)" />
+          <input [ngModel]="getStyleValue('right')" (ngModelChange)="updateStyle('right', $event)" />
         </div>
         <div class="control-row">
           <label>Bottom</label>
-          <input [ngModel]="node.styles.default['bottom']" (ngModelChange)="updateStyle('bottom', $event)" />
+          <input [ngModel]="getStyleValue('bottom')" (ngModelChange)="updateStyle('bottom', $event)" />
         </div>
         <div class="control-row">
           <label>Left</label>
-          <input [ngModel]="node.styles.default['left']" (ngModelChange)="updateStyle('left', $event)" />
+          <input [ngModel]="getStyleValue('left')" (ngModelChange)="updateStyle('left', $event)" />
         </div>
         <div class="control-row">
           <label>Z-index</label>
-          <input [ngModel]="node.styles.default['zIndex']" (ngModelChange)="updateStyle('zIndex', $event)" />
+          <input [ngModel]="getStyleValue('zIndex')" (ngModelChange)="updateStyle('zIndex', $event)" />
         </div>
       </div>
     </details>
@@ -338,30 +339,31 @@
       <div class="section-body">
         <div class="control-row">
           <label>Font</label>
-          <select [ngModel]="node.styles.default['fontFamily']" (ngModelChange)="updateStyle('fontFamily', $event)">
-            <option value="Inter, Segoe UI, sans-serif">Primary</option>
-            <option value="Georgia, serif">Secondary</option>
+          <select [ngModel]="getFontFamily()" (ngModelChange)="updateFontFamily($event)">
+            <option *ngFor="let font of fontOptions" [value]="font.stack">{{ font.label }}</option>
           </select>
         </div>
         <div class="control-row">
           <label>Weight</label>
-          <input [ngModel]="node.styles.default['fontWeight']" (ngModelChange)="updateStyle('fontWeight', $event)" />
+          <select [ngModel]="getStyleValue('fontWeight')" (ngModelChange)="updateFontWeight($event)">
+            <option *ngFor="let weight of getFontWeights()" [value]="weight">{{ weight }}</option>
+          </select>
         </div>
         <div class="control-row">
           <label>Size</label>
-          <input [ngModel]="node.styles.default['fontSize']" (ngModelChange)="updateStyle('fontSize', $event)" placeholder="16px" />
+          <input [ngModel]="getStyleValue('fontSize')" (ngModelChange)="updateStyle('fontSize', $event)" placeholder="16px" />
         </div>
         <div class="control-row">
           <label>Line height</label>
-          <input [ngModel]="node.styles.default['lineHeight']" (ngModelChange)="updateStyle('lineHeight', $event)" placeholder="1.6" />
+          <input [ngModel]="getStyleValue('lineHeight')" (ngModelChange)="updateStyle('lineHeight', $event)" placeholder="1.6" />
         </div>
         <div class="control-row">
           <label>Letter spacing</label>
-          <input [ngModel]="node.styles.default['letterSpacing']" (ngModelChange)="updateStyle('letterSpacing', $event)" placeholder="0px" />
+          <input [ngModel]="getStyleValue('letterSpacing')" (ngModelChange)="updateStyle('letterSpacing', $event)" placeholder="0px" />
         </div>
         <div class="control-row">
           <label>Align</label>
-          <select [ngModel]="node.styles.default['textAlign']" (ngModelChange)="updateStyle('textAlign', $event)">
+          <select [ngModel]="getStyleValue('textAlign')" (ngModelChange)="updateStyle('textAlign', $event)">
             <option value="left">Left</option>
             <option value="center">Center</option>
             <option value="right">Right</option>
@@ -370,7 +372,7 @@
         </div>
         <div class="control-row">
           <label>Transform</label>
-          <select [ngModel]="node.styles.default['textTransform']" (ngModelChange)="updateStyle('textTransform', $event)">
+          <select [ngModel]="getStyleValue('textTransform')" (ngModelChange)="updateStyle('textTransform', $event)">
             <option value="none">None</option>
             <option value="uppercase">Uppercase</option>
             <option value="lowercase">Lowercase</option>
@@ -379,7 +381,7 @@
         </div>
         <div class="control-row">
           <label>Decoration</label>
-          <select [ngModel]="node.styles.default['textDecoration']" (ngModelChange)="updateStyle('textDecoration', $event)">
+          <select [ngModel]="getStyleValue('textDecoration')" (ngModelChange)="updateStyle('textDecoration', $event)">
             <option value="none">None</option>
             <option value="underline">Underline</option>
             <option value="line-through">Line-through</option>
@@ -387,7 +389,10 @@
         </div>
         <div class="control-row">
           <label>Color</label>
-          <input [ngModel]="node.styles.default['color']" (ngModelChange)="updateStyle('color', $event)" placeholder="#111111" />
+          <div class="color-row">
+            <input type="color" [ngModel]="getStyleValue('color')" (ngModelChange)="updateColor($event)" />
+            <input [ngModel]="getStyleValue('color')" (ngModelChange)="updateColor($event)" placeholder="#111111" />
+          </div>
         </div>
       </div>
     </details>
@@ -397,19 +402,47 @@
       <div class="section-body">
         <div class="control-row">
           <label>Background</label>
-          <input [ngModel]="node.styles.default['backgroundColor']" (ngModelChange)="updateStyle('backgroundColor', $event)" placeholder="#ffffff" />
+          <div class="color-row">
+            <input
+              type="color"
+              [ngModel]="getStyleValue('backgroundColor')"
+              (ngModelChange)="updateStyle('backgroundColor', $event)"
+            />
+            <input
+              [ngModel]="getStyleValue('backgroundColor')"
+              (ngModelChange)="updateStyle('backgroundColor', $event)"
+              placeholder="#ffffff"
+            />
+          </div>
         </div>
         <div class="control-row">
-          <label>Border</label>
-          <input [ngModel]="node.styles.default['border']" (ngModelChange)="updateStyle('border', $event)" placeholder="1px solid #e5e7eb" />
+          <label>Border width</label>
+          <input [ngModel]="getBorderWidth()" (ngModelChange)="updateBorder($event, getBorderStyle(), getBorderColor())" placeholder="1px" />
+        </div>
+        <div class="control-row">
+          <label>Border style</label>
+          <select [ngModel]="getBorderStyle()" (ngModelChange)="updateBorder(getBorderWidth(), $event, getBorderColor())">
+            <option value="solid">Solid</option>
+            <option value="dashed">Dashed</option>
+            <option value="dotted">Dotted</option>
+            <option value="double">Double</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+        <div class="control-row">
+          <label>Border color</label>
+          <div class="color-row">
+            <input type="color" [ngModel]="getBorderColor()" (ngModelChange)="updateBorder(getBorderWidth(), getBorderStyle(), $event)" />
+            <input [ngModel]="getBorderColor()" (ngModelChange)="updateBorder(getBorderWidth(), getBorderStyle(), $event)" />
+          </div>
         </div>
         <div class="control-row">
           <label>Radius</label>
-          <input [ngModel]="node.styles.default['borderRadius']" (ngModelChange)="updateStyle('borderRadius', $event)" placeholder="12px" />
+          <input [ngModel]="getStyleValue('borderRadius')" (ngModelChange)="updateStyle('borderRadius', $event)" placeholder="12px" />
         </div>
         <div class="control-row">
           <label>Shadow</label>
-          <input [ngModel]="node.styles.default['boxShadow']" (ngModelChange)="updateStyle('boxShadow', $event)" placeholder="0 8px 30px rgba(0,0,0,0.1)" />
+          <input [ngModel]="getStyleValue('boxShadow')" (ngModelChange)="updateStyle('boxShadow', $event)" placeholder="0 8px 30px rgba(0,0,0,0.1)" />
         </div>
       </div>
     </details>

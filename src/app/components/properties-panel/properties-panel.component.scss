@@ -121,6 +121,20 @@
   grid-template-columns: repeat(2, 1fr);
 }
 
+.color-row {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 8px;
+}
+
+.color-row input[type='color'] {
+  padding: 0;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #2a313a;
+  background: #15181d;
+}
+
 .section-title {
   display: flex;
   align-items: center;

@@ -13,6 +13,7 @@ export class BuilderService {
   private saveTimer: number | null = null;
   private snapshotTimer: number | null = null;
   private projectId: string | null = null;
+  private dirty = false;
 
   page$ = this.pageSubject.asObservable();
   selectedId$ = this.selectedIdSubject.asObservable();
@@ -29,6 +30,7 @@ export class BuilderService {
     this.selectedIdSubject.next(null);
     this.history = [deepClone(page)];
     this.historyIndex = 0;
+    this.dirty = false;
     return page;
   }
 
@@ -135,7 +137,9 @@ export class BuilderService {
       return;
     }
     page.updatedAt = Date.now();
-    void this.dataService.updatePage(this.projectId, page);
+    void this.dataService.updatePage(this.projectId, page).then(() => {
+      this.dirty = false;
+    });
   }
 
   undo(): void {
@@ -171,8 +175,13 @@ export class BuilderService {
   private touch(page: PageDocument): void {
     page.updatedAt = Date.now();
     this.pageSubject.next(page);
+    this.dirty = true;
     this.scheduleSave();
     this.scheduleSnapshot();
+  }
+
+  isDirty(): boolean {
+    return this.dirty;
   }
 
   private scheduleSave(): void {

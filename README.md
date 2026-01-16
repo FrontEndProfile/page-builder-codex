@@ -46,6 +46,12 @@ The **Export** button produces a zip file using JSZip with one of these formats:
 - **Export JSON** downloads the current `PageDocument` as JSON.
 - **Import JSON** replaces the current page with the uploaded JSON (validated against the expected schema).
 
+## Keyboard Shortcuts
+
+- `Cmd/Ctrl + Z` – Undo
+- `Cmd/Ctrl + Shift + Z` or `Ctrl + Y` – Redo
+- `Delete` or `Cmd + Backspace` – Delete selected node
+
 ## Firebase Setup
 
 Firebase is initialized in `src/app/firebase/firebase-init.ts` with the provided configuration.

@@ -2,9 +2,71 @@
   position: relative;
 }
 
+.node-wrapper {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
 .node--selected {
   outline: 2px solid #4f46e5;
   outline-offset: 2px;
+}
+
+.quick-toggle {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: #111827;
+  color: #ffffff;
+  font-size: 12px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  z-index: 5;
+}
+
+.quick-panel {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+  min-width: 200px;
+  z-index: 10;
+  font-size: 12px;
+}
+
+.quick-panel label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.quick-panel input,
+.quick-panel select,
+.quick-panel textarea {
+  border-radius: 8px;
+  border: 1px solid #1f2937;
+  background: #111827;
+  color: #e2e8f0;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.quick-panel textarea {
+  min-height: 70px;
+  resize: vertical;
 }
 
 .resize-handle {

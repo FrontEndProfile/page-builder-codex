@@ -1,4 +1,10 @@
 <div class="builder app-page" *ngIf="page">
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <p>{{ loadingMessage }}</p>
+    </div>
+  </div>
   <header class="builder__topbar">
     <div class="topbar__title">
       <h2>{{ page.name }}</h2>
@@ -29,31 +35,72 @@
 
   <div class="builder__layout">
     <aside class="builder__sidebar">
-      <div class="sidebar__tabs">
-        <button type="button" [class.active]="sidebarTab === 'library'" (click)="sidebarTab = 'library'">
-          Library
-        </button>
-        <button type="button" [class.active]="sidebarTab === 'layers'" (click)="sidebarTab = 'layers'">
-          Layers
-        </button>
+      <div class="sidebar__rail">
+        <button type="button" [class.active]="sidebarMode === 'add'" (click)="sidebarMode = 'add'">+</button>
+        <button type="button" [class.active]="sidebarMode === 'pages'" (click)="sidebarMode = 'pages'">📄</button>
+        <button type="button" [class.active]="sidebarMode === 'navigator'" (click)="sidebarMode = 'navigator'">☰</button>
+        <button type="button" class="ghost">⚙</button>
       </div>
 
-      <div *ngIf="sidebarTab === 'library'">
-        <h3>Component Library</h3>
-        <div class="library">
-          <div class="library__item" *ngFor="let item of library">
-            <div>
-              <strong>{{ item.label }}</strong>
-              <p>{{ item.description }}</p>
+      <div class="sidebar__panel" *ngIf="sidebarMode === 'add'">
+        <div class="sidebar__tabs">
+          <button type="button" [class.active]="addTab === 'elements'" (click)="addTab = 'elements'">
+            Elements
+          </button>
+          <button type="button" [class.active]="addTab === 'layouts'" (click)="addTab = 'layouts'">
+            Layouts
+          </button>
+        </div>
+        <div *ngIf="addTab === 'elements'">
+          <div class="library-group" *ngFor="let group of libraryGroups">
+            <h3>{{ group.title }}</h3>
+            <div class="library">
+              <div class="library__item" *ngFor="let item of group.items">
+                <div>
+                  <strong>{{ item.label }}</strong>
+                  <p>{{ item.description }}</p>
+                </div>
+                <button type="button" (click)="addNode(item.type)">Add</button>
+              </div>
             </div>
-            <button type="button" (click)="addNode(item.type)">Add</button>
+          </div>
+        </div>
+        <div *ngIf="addTab === 'layouts'" class="hint">
+          Layout presets coming soon.
+        </div>
+      </div>
+
+      <div class="sidebar__panel" *ngIf="sidebarMode === 'pages'">
+        <h3>Pages</h3>
+        <div class="project__create-page">
+          <input [(ngModel)]="newPageName" placeholder="New page name" />
+          <button type="button" (click)="createPageInline()">Add Page</button>
+        </div>
+        <div class="project__pages">
+          <div class="page" *ngFor="let pageItem of projectPages">
+            <div>
+              <h4>{{ pageItem.name }}</h4>
+              <span>Updated {{ pageItem.updatedAt | date: 'short' }}</span>
+            </div>
+            <div class="page__actions">
+              <button
+                type="button"
+                [class.active]="pageItem.id === pageId"
+                [disabled]="pageItem.id === pageId"
+                (click)="openPage(pageItem.id)"
+              >
+                {{ pageItem.id === pageId ? 'Current' : 'Open' }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div *ngIf="sidebarTab === 'layers'" class="layers">
-        <h3>Layers</h3>
-        <ng-container *ngTemplateOutlet="layerNode; context: { $implicit: page.root, depth: 0 }"></ng-container>
+      <div class="sidebar__panel layers" *ngIf="sidebarMode === 'navigator'">
+        <h3>Navigator</h3>
+        <ng-container
+          *ngTemplateOutlet="layerNode; context: { $implicit: page.root, depth: 0, parentId: null, index: 0 }"
+        ></ng-container>
       </div>
     </aside>
 
@@ -72,16 +119,18 @@
             fontFamily: page.settings.primaryFont
           }"
         >
-          <app-node-renderer
-            [node]="page.root"
-            [selectedId]="builder.selectedId"
-            [parentId]="null"
-            [index]="0"
-            (selectNode)="selectNode($event)"
-            (startDrag)="handleStartDrag($event)"
-            (startResize)="handleStartResize($event)"
-            (reorder)="handleReorder($event)"
-          ></app-node-renderer>
+        <app-node-renderer
+          [node]="page.root"
+          [selectedId]="builder.selectedId"
+          [parentId]="null"
+          [index]="0"
+          [viewport]="viewMode"
+          (selectNode)="selectNode($event)"
+          (startDrag)="handleStartDrag($event)"
+          (startResize)="handleStartResize($event)"
+          (reorder)="handleReorder($event)"
+          (quickUpdate)="handleQuickUpdate($event)"
+        ></app-node-renderer>
         </div>
         <button
           type="button"
@@ -95,7 +144,12 @@
     </main>
 
     <aside class="builder__properties">
-      <app-properties-panel [node]="selectedNode" [projectId]="projectId" [pageId]="pageId"></app-properties-panel>
+      <app-properties-panel
+        [node]="selectedNode"
+        [projectId]="projectId"
+        [pageId]="pageId"
+        [viewMode]="viewMode"
+      ></app-properties-panel>
     </aside>
   </div>
 </div>
@@ -132,18 +186,50 @@
   </div>
 </div>
 
-<ng-template #layerNode let-node let-depth="depth">
-  <div
-    class="layers__item"
-    [class.layers__item--selected]="node.id === builder.selectedId"
-    [style.paddingLeft.px]="depth * 14"
-  >
-    <button type="button" class="layers__label" (click)="selectNode(node)">
-      {{ getLayerLabel(node) }}
-    </button>
+<div class="modal" *ngIf="showUnsavedModal">
+  <div class="modal__content">
+    <h3>Unsaved changes</h3>
+    <p>You have unsaved changes. Save before switching pages?</p>
+    <div class="modal__actions">
+      <button type="button" (click)="confirmNavigate(true)">Save & Continue</button>
+      <button type="button" class="ghost" (click)="confirmNavigate(false)">Discard</button>
+    </div>
+  </div>
+</div>
+
+<ng-template #layerNode let-node let-depth="depth" let-parentId="parentId" let-index="index">
+  <div class="layers__item" [class.layers__item--selected]="node.id === builder.selectedId" [style.paddingLeft.px]="depth * 10">
+    <div class="layers__row">
+      <button
+        type="button"
+        class="layers__toggle"
+        [class.layers__toggle--hidden]="!node.children?.length"
+        (click)="toggleExpanded(node)"
+      >
+        <span [class.layers__toggle--open]="isExpanded(node)">▸</span>
+      </button>
+      <span class="layers__icon">▣</span>
+      <button type="button" class="layers__label" (click)="selectNode(node)">
+        {{ getLayerLabel(node) }}
+      </button>
+    </div>
     <div class="layers__actions">
-      <button type="button" class="ghost" (click)="moveLayer(node, -1)" [disabled]="!canMoveLayer(node, -1)">↑</button>
-      <button type="button" class="ghost" (click)="moveLayer(node, 1)" [disabled]="!canMoveLayer(node, 1)">↓</button>
+      <button
+        type="button"
+        class="ghost"
+        [disabled]="!canMoveLayer(node, -1)"
+        (click)="moveLayer(node, -1)"
+      >
+        ↑
+      </button>
+      <button
+        type="button"
+        class="ghost"
+        [disabled]="!canMoveLayer(node, 1)"
+        (click)="moveLayer(node, 1)"
+      >
+        ↓
+      </button>
       <button
         type="button"
         class="danger"
@@ -154,9 +240,21 @@
       </button>
     </div>
   </div>
-  <div class="layers__children" *ngIf="node.children?.length">
-    <ng-container *ngFor="let child of node.children; trackBy: trackById">
-      <ng-container *ngTemplateOutlet="layerNode; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+  <div class="layers__children" *ngIf="canAcceptChildren(node)" [class.layers__children--empty]="!node.children?.length">
+    <ng-container *ngIf="isExpanded(node)">
+      <ng-container *ngFor="let child of node.children ?? []; trackBy: trackById">
+        <ng-container
+          *ngTemplateOutlet="
+            layerNode;
+            context: {
+              $implicit: child,
+              depth: depth + 1,
+              parentId: node.id,
+              index: node.children?.indexOf(child) ?? 0
+            }
+          "
+        ></ng-container>
+      </ng-container>
     </ng-container>
   </div>
 </ng-template>
