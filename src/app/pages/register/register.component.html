@@ -1,4 +1,10 @@
 <div class="login app-page">
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <p>Creating account...</p>
+    </div>
+  </div>
   <div class="login__card">
     <h1>Create account</h1>
     <p>Register with your email and password.</p>

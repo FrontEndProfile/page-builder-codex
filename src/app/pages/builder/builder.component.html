@@ -12,33 +12,59 @@
     </div>
     <div class="topbar__actions">
       <div class="view-toggle">
-        <button type="button" [class.active]="viewMode === 'desktop'" (click)="viewMode = 'desktop'">Desktop</button>
-        <button type="button" [class.active]="viewMode === 'tablet'" (click)="viewMode = 'tablet'">Tablet</button>
-        <button type="button" [class.active]="viewMode === 'mobile'" (click)="viewMode = 'mobile'">Mobile</button>
+        <button type="button" [class.active]="viewMode === 'desktop'" (click)="viewMode = 'desktop'" title="Desktop view">
+          <i class="fa-solid fa-desktop"></i>
+        </button>
+        <button type="button" [class.active]="viewMode === 'tablet'" (click)="viewMode = 'tablet'" title="Tablet view">
+          <i class="fa-solid fa-tablet-screen-button"></i>
+        </button>
+        <button type="button" [class.active]="viewMode === 'mobile'" (click)="viewMode = 'mobile'" title="Mobile view">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+        </button>
       </div>
-      <button type="button" (click)="save()">Save</button>
-      <button type="button" [disabled]="!canUndo" (click)="undo()">Undo</button>
-      <button type="button" [disabled]="!canRedo" (click)="redo()">Redo</button>
-      <button type="button" class="danger" [disabled]="!selectedNode || selectedNode.id === page.root.id" (click)="deleteSelected()">
-        Delete
+      <button type="button" class="icon-only" (click)="save()" title="Save">
+        <i class="fa-solid fa-floppy-disk"></i>
       </button>
-      <button type="button" (click)="openPreview()">Preview</button>
-      <button type="button" (click)="showExportModal = true">Export</button>
-      <button type="button" (click)="openVersions()">Versions</button>
-      <button type="button" (click)="exportJson()">Export JSON</button>
+      <button type="button" class="icon-only" [disabled]="!canUndo" (click)="undo()" title="Undo">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+      <button type="button" class="icon-only" [disabled]="!canRedo" (click)="redo()" title="Redo">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+      <button
+        type="button"
+        class="icon-only danger"
+        [disabled]="!selectedNode || selectedNode.id === page.root.id"
+        (click)="deleteSelected()"
+        title="Delete selected"
+      >
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      <button type="button" class="icon-only" (click)="openPreview()" title="Preview">
+        <i class="fa-solid fa-eye"></i>
+      </button>
+      <button type="button" class="icon-only" (click)="showExportModal = true" title="Export">
+        <i class="fa-solid fa-file-export"></i>
+      </button>
+      <button type="button" class="icon-only" (click)="openVersions()" title="Versions">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+      </button>
+      <button type="button" class="icon-only" (click)="exportJson()" title="Export JSON">
+        <i class="fa-solid fa-code"></i>
+      </button>
       <label class="import-button">
-        Import JSON
+        <i class="fa-solid fa-file-import" title="Import JSON"></i>
         <input type="file" accept="application/json" (change)="handleImportFile($event)" />
       </label>
     </div>
   </header>
 
   <div class="builder__layout">
-    <aside class="builder__sidebar">
+    <aside class="builder__sidebar" [class.builder__sidebar--collapsed]="!sidebarMode">
       <div class="sidebar__rail">
-        <button type="button" [class.active]="sidebarMode === 'add'" (click)="sidebarMode = 'add'">+</button>
-        <button type="button" [class.active]="sidebarMode === 'pages'" (click)="sidebarMode = 'pages'">📄</button>
-        <button type="button" [class.active]="sidebarMode === 'navigator'" (click)="sidebarMode = 'navigator'">☰</button>
+        <button type="button" [class.active]="sidebarMode === 'add'" (click)="toggleSidebar('add')">+</button>
+        <button type="button" [class.active]="sidebarMode === 'pages'" (click)="toggleSidebar('pages')">📄</button>
+        <button type="button" [class.active]="sidebarMode === 'navigator'" (click)="toggleSidebar('navigator')">☰</button>
         <button type="button" class="ghost">⚙</button>
       </div>
 
@@ -73,7 +99,9 @@
       <div class="sidebar__panel" *ngIf="sidebarMode === 'pages'">
         <div class="panel__title">
           <h3>Pages</h3>
-          <button type="button" class="settings-toggle" (click)="togglePageSettings()">⚙</button>
+          <button type="button" class="icon-button" (click)="togglePageSettings()" aria-label="Page settings">
+            ⚙
+          </button>
         </div>
         <div class="project__create-page">
           <input [(ngModel)]="newPageName" placeholder="New page name" />
@@ -96,11 +124,11 @@
               </button>
               <button
                 type="button"
-                class="ghost page-settings-btn"
+                class="icon-button page-settings-btn"
                 *ngIf="pageItem.id === pageId"
                 (click)="togglePageSettings()"
               >
-                Settings
+                ⚙
               </button>
             </div>
           </div>
@@ -109,7 +137,9 @@
         <div class="page-settings" *ngIf="showPageSettings">
           <div class="page-settings__header">
             <h4>Page Settings</h4>
-            <button type="button" class="ghost" (click)="togglePageSettings()">Close</button>
+            <button type="button" class="icon-button" (click)="togglePageSettings()" aria-label="Close settings">
+              ✕
+            </button>
           </div>
 
           <div class="page-settings__section">
@@ -149,7 +179,21 @@
               (ngModelChange)="updateSeoValue('ogDescription', $event)"
             ></textarea>
             <label>Open Graph Image</label>
-            <input [ngModel]="getSeoValue('ogImage')" (ngModelChange)="updateSeoValue('ogImage', $event)" />
+            <label class="upload-button og-upload">
+              <span>{{ ogLoading ? 'Uploading...' : 'Upload image' }}</span>
+              <input type="file" accept="image/*" (change)="handleOgImageUpload($event)" />
+            </label>
+            <div class="og-grid" *ngIf="ogImages.length">
+              <button
+                type="button"
+                class="og-card"
+                *ngFor="let url of ogImages"
+                [class.active]="getSeoValue('ogImage') === url"
+                (click)="selectOgImage(url)"
+              >
+                <div class="og-card__image" [style.backgroundImage]="'url(' + url + ')'"></div>
+              </button>
+            </div>
             <div class="og-preview">
               <div class="og-preview__image" [style.backgroundImage]="'url(' + getSeoValue('ogImage') + ')'"></div>
               <div>

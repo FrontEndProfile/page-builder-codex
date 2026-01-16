@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import JSZip from 'jszip';
 import { BuilderService } from '../../services/builder.service';
 import { FirebaseDataService } from '../../services/firebase-data.service';
+import { FirebaseStorageService } from '../../services/firebase-storage.service';
 import { PageDocument, PageNode, NodeType } from '../../models/page-schema';
 import {
   buildDefaultStyles,
@@ -37,7 +38,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
   versions: { id: string; createdAt: number; note: string }[] = [];
   versionsLoading = false;
   sidebarTab: 'library' | 'layers' = 'library';
-  sidebarMode: 'add' | 'pages' | 'navigator' = 'add';
+  sidebarMode: 'add' | 'pages' | 'navigator' | null = 'navigator';
   addTab: 'elements' | 'layouts' = 'elements';
   viewMode: 'desktop' | 'tablet' | 'mobile' = 'desktop';
   frameWidth = {
@@ -107,6 +108,8 @@ export class BuilderComponent implements OnInit, OnDestroy {
   loadingMessage = 'Loading...';
   showPageSettings = false;
   showDeletePageModal = false;
+  ogImages: string[] = [];
+  ogLoading = false;
 
   projectId: string | null = null;
   pageId: string | null = null;
@@ -127,6 +130,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     private router: Router,
     public builder: BuilderService,
     private dataService: FirebaseDataService,
+    private storageService: FirebaseStorageService,
   ) {}
 
   ngOnInit(): void {
@@ -602,6 +606,13 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   togglePageSettings(): void {
     this.showPageSettings = !this.showPageSettings;
+    if (this.showPageSettings) {
+      void this.loadOgImages();
+    }
+  }
+
+  toggleSidebar(mode: 'add' | 'pages' | 'navigator'): void {
+    this.sidebarMode = this.sidebarMode === mode ? null : mode;
   }
 
   updatePageName(value: string): void {
@@ -644,6 +655,29 @@ export class BuilderComponent implements OnInit, OnDestroy {
     });
   }
 
+  async handleOgImageUpload(event: Event): Promise<void> {
+    if (!this.projectId) {
+      return;
+    }
+    const target = event.target as HTMLInputElement;
+    if (!target.files?.length) {
+      return;
+    }
+    this.ogLoading = true;
+    try {
+      const url = await this.storageService.uploadImage(this.projectId, target.files[0]);
+      this.updateSeoValue('ogImage', url);
+      await this.loadOgImages();
+    } finally {
+      this.ogLoading = false;
+      target.value = '';
+    }
+  }
+
+  selectOgImage(url: string): void {
+    this.updateSeoValue('ogImage', url);
+  }
+
   requestDeletePage(): void {
     this.showDeletePageModal = true;
   }
@@ -664,6 +698,20 @@ export class BuilderComponent implements OnInit, OnDestroy {
       await this.router.navigate(['/dashboard']);
     }
     this.setLoading(false);
+  }
+
+  private async loadOgImages(): Promise<void> {
+    if (!this.projectId) {
+      return;
+    }
+    this.ogLoading = true;
+    try {
+      this.ogImages = await this.storageService.listProjectImages(this.projectId);
+    } catch {
+      this.ogImages = [];
+    } finally {
+      this.ogLoading = false;
+    }
   }
 
   async confirmNavigate(save: boolean): Promise<void> {

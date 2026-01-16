@@ -23,6 +23,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   pageNameByProject: Record<string, string> = {};
   loading = true;
   userEmail = '';
+  actionLoading = false;
+  actionMessage = 'Working...';
   private unsubscribe?: () => void;
   private authSub?: Subscription;
 
@@ -74,8 +76,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!this.projectName.trim()) {
       return;
     }
+    this.setActionLoading(true, 'Creating project...');
     await this.dataService.createProject(this.projectName.trim());
     this.projectName = '';
+    this.setActionLoading(false);
   }
 
   async createPage(projectId: string): Promise<void> {
@@ -84,8 +88,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
     const page = createPageDocument(name);
+    this.setActionLoading(true, 'Creating page...');
     await this.dataService.addPage(projectId, page);
     this.pageNameByProject[projectId] = '';
+    this.setActionLoading(false);
   }
 
   openBuilder(projectId: string, pageId: string): void {
@@ -93,22 +99,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   async duplicatePage(projectId: string, pageId: string): Promise<void> {
+    this.setActionLoading(true, 'Duplicating page...');
     await this.dataService.duplicatePage(projectId, pageId);
+    this.setActionLoading(false);
   }
 
   async deletePage(projectId: string, pageId: string): Promise<void> {
     if (!confirm('Delete this page?')) {
       return;
     }
+    this.setActionLoading(true, 'Deleting page...');
     await this.dataService.deletePage(projectId, pageId);
+    this.setActionLoading(false);
   }
 
   async logout(): Promise<void> {
+    this.setActionLoading(true, 'Signing out...');
     await this.auth.logout();
     await this.router.navigate(['/login']);
+    this.setActionLoading(false);
   }
 
   manageProfile(): void {
     this.toast.show('Profile management is coming soon.', 'info');
+  }
+
+  private setActionLoading(isLoading: boolean, message?: string): void {
+    this.actionLoading = isLoading;
+    if (message) {
+      this.actionMessage = message;
+    }
   }
 }

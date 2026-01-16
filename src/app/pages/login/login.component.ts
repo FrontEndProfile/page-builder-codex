@@ -16,11 +16,13 @@ export class LoginComponent {
   email = '';
   password = '';
   loading = false;
+  loadingMessage = 'Signing in...';
 
   constructor(private auth: AuthService, private router: Router, private toast: ToastService) {}
 
   async login(): Promise<void> {
     this.loading = true;
+    this.loadingMessage = 'Signing in...';
     try {
       await this.auth.login(this.email.trim(), this.password);
       await this.router.navigate(['/dashboard']);
@@ -36,7 +38,10 @@ export class LoginComponent {
   }
 
   async logout(): Promise<void> {
+    this.loading = true;
+    this.loadingMessage = 'Signing out...';
     await this.auth.logout();
+    this.loading = false;
   }
 
   private getErrorMessage(error: unknown): string {

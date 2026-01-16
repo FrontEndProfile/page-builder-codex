@@ -3,9 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <title>Page Builder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <style>
+      body app-root app-builder,
+      body app-root app-preview {
+        height: 100vh;
+        display: block;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #111827 100%);
+      }
+      body app-root app-builder::before,
+      body app-root app-preview::before {
+        content: 'Loading...';
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        color: white;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
   </head>
   <body>
     <app-root></app-root>
