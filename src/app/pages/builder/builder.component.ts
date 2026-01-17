@@ -262,7 +262,6 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.projectId = projectId;
     this.pageId = pageId;
     const loaded = await this.builder.loadPage(projectId, pageId);
-    debugger
     if (!loaded) {
       this.setLoading(false);
       this.router.navigate(['/dashboard']);
