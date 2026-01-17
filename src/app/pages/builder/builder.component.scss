@@ -52,6 +52,10 @@
     transform: rotate(360deg);
   }
 }
+.topbar__title {
+  display: flex;
+  gap: 4px;
+}
 
 .topbar__title h2 {
   margin: 0;
@@ -74,7 +78,7 @@
   border-radius: 999px;
   font-size: 12px;
   cursor: pointer;
-  margin-bottom: 6px;
+  margin-right: 6px;
 }
 
 .topbar__back i {
@@ -123,8 +127,9 @@
   color: #ffffff;
   width: 34px;
   height: 34px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .view-toggle button.active {

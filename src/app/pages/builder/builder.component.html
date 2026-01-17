@@ -9,10 +9,12 @@
     <div class="topbar__title">
       <button type="button" class="topbar__back" (click)="goDashboard()" aria-label="Back to dashboard">
         <i class="fa-solid fa-arrow-left"></i>
-        <span>Dashboard</span>
+        <span><i class="fa-solid fa-house"></i></span>
       </button>
-      <h2>{{ page.name }}</h2>
-      <span>Last updated {{ page.updatedAt | date: 'short' }}</span>
+      <div>
+        <h2>{{ page.name }}</h2>
+        <span>Last updated {{ page.updatedAt | date: 'short' }}</span>
+      </div>
     </div>
     <div class="topbar__actions">
       <div class="view-toggle">
