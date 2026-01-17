@@ -2,7 +2,7 @@
   <style>{{ hoverStyles }}</style>
   <header class="preview__topbar">
     <div class="preview__title">
-      <button type="button" class="ghost" (click)="goBack()">Back to Builder</button>
+      <a class="ghost" [routerLink]="builderUrl">Back to Builder</a>
       <span>Preview</span>
     </div>
     <div class="view-toggle">

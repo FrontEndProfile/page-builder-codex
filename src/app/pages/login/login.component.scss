@@ -46,6 +46,23 @@
   color: #ffffff;
 }
 
+.input-field {
+  display: grid;
+  gap: 6px;
+}
+
+.input-error {
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2);
+}
+
+.input-error__text {
+  margin: 0;
+  font-size: 12px;
+  color: #fca5a5;
+}
+
 .actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -79,13 +96,15 @@ button.ghost {
 }
 
 .loading-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
   display: grid;
   place-items: center;
   z-index: 40;
   backdrop-filter: blur(2px);
+  height: 100vh;
+  overflow: hidden;
 }
 
 .loading-card {

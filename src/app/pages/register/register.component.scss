@@ -69,13 +69,15 @@ button.ghost {
 }
 
 .loading-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
   display: grid;
   place-items: center;
   z-index: 40;
   backdrop-filter: blur(2px);
+  height: 100vh;
+  overflow: hidden;
 }
 
 .loading-card {

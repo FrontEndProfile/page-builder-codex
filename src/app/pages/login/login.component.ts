@@ -17,10 +17,20 @@ export class LoginComponent {
   password = '';
   loading = false;
   loadingMessage = 'Signing in...';
+  emailError = '';
+  passwordError = '';
 
   constructor(private auth: AuthService, private router: Router, private toast: ToastService) {}
 
   async login(): Promise<void> {
+    if (!this.email.trim() || !this.password) {
+      this.emailError = this.email.trim() ? '' : 'Email is required.';
+      this.passwordError = this.password ? '' : 'Password is required.';
+      this.toast.show('Email and password are required.', 'error');
+      return;
+    }
+    this.emailError = '';
+    this.passwordError = '';
     this.loading = true;
     this.loadingMessage = 'Signing in...';
     try {
@@ -42,6 +52,18 @@ export class LoginComponent {
     this.loadingMessage = 'Signing out...';
     await this.auth.logout();
     this.loading = false;
+  }
+
+  onEmailChange(value: string): void {
+    if (value.trim()) {
+      this.emailError = '';
+    }
+  }
+
+  onPasswordChange(value: string): void {
+    if (value) {
+      this.passwordError = '';
+    }
   }
 
   private getErrorMessage(error: unknown): string {

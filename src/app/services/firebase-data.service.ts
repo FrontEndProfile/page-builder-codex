@@ -8,8 +8,10 @@ import {
   getDocs,
   onSnapshot,
   getFirestore,
+  enableIndexedDbPersistence,
   setDoc,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { firebaseApp } from '../firebase/firebase-init';
 import { PageDocument, ProjectData } from '../models/page-schema';
@@ -19,8 +21,13 @@ import { deepClone, generateId } from '../utils/page-builder-utils';
 @Injectable({ providedIn: 'root' })
 export class FirebaseDataService {
   private db = getFirestore(firebaseApp);
+  private static readonly WRITE_TIMEOUT_MS = 40000;
 
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService) {
+    enableIndexedDbPersistence(this.db).catch(() => {
+      // Ignore persistence errors (e.g., multiple tabs).
+    });
+  }
 
   async listProjects(): Promise<ProjectData[]> {
     const uid = this.getUidOrThrow();
@@ -127,11 +134,14 @@ export class FirebaseDataService {
   async createProject(name: string): Promise<ProjectData> {
     const uid = this.getUidOrThrow();
     const now = Date.now();
-    const projectRef = await addDoc(collection(this.db, `users/${uid}/projects`), {
-      name,
-      createdAt: now,
-      updatedAt: now,
-    });
+    const projectRef = await this.withTimeout(
+      addDoc(collection(this.db, `users/${uid}/projects`), {
+        name,
+        createdAt: now,
+        updatedAt: now,
+      }),
+      'Create project',
+    );
     return {
       id: projectRef.id,
       name,
@@ -141,24 +151,62 @@ export class FirebaseDataService {
     };
   }
 
+  async updateProjectName(projectId: string, name: string): Promise<void> {
+    const uid = this.getUidOrThrow();
+    await this.withTimeout(
+      updateDoc(doc(this.db, `users/${uid}/projects/${projectId}`), { name, updatedAt: Date.now() }),
+      'Update project',
+    );
+  }
+
+  async deleteProject(projectId: string): Promise<void> {
+    const uid = this.getUidOrThrow();
+    const pagesSnap = await getDocs(collection(this.db, `users/${uid}/projects/${projectId}/pages`));
+    for (const pageDoc of pagesSnap.docs) {
+      await this.deleteCollectionDocs(
+        `users/${uid}/projects/${projectId}/pages/${pageDoc.id}/versions`,
+      );
+      await this.withTimeout(deleteDoc(pageDoc.ref), 'Delete page');
+    }
+    await this.withTimeout(deleteDoc(doc(this.db, `users/${uid}/projects/${projectId}`)), 'Delete project');
+  }
+
   async addPage(projectId: string, page: PageDocument): Promise<void> {
     const uid = this.getUidOrThrow();
     const pageRef = doc(this.db, `users/${uid}/projects/${projectId}/pages/${page.id}`);
-    await setDoc(pageRef, { ...page, createdAt: page.createdAt, updatedAt: page.updatedAt });
-    await updateDoc(doc(this.db, `users/${uid}/projects/${projectId}`), { updatedAt: Date.now() });
+    await this.withTimeout(
+      setDoc(pageRef, { ...page, createdAt: page.createdAt, updatedAt: page.updatedAt }),
+      'Create page',
+    );
+    await this.withTimeout(
+      updateDoc(doc(this.db, `users/${uid}/projects/${projectId}`), { updatedAt: Date.now() }),
+      'Update project timestamp',
+    );
   }
 
   async updatePage(projectId: string, page: PageDocument): Promise<void> {
     const uid = this.getUidOrThrow();
     const pageRef = doc(this.db, `users/${uid}/projects/${projectId}/pages/${page.id}`);
-    await setDoc(pageRef, { ...page, updatedAt: page.updatedAt }, { merge: true });
-    await updateDoc(doc(this.db, `users/${uid}/projects/${projectId}`), { updatedAt: Date.now() });
+    await this.withTimeout(
+      setDoc(pageRef, { ...page, updatedAt: page.updatedAt }, { merge: true }),
+      'Update page',
+    );
+    await this.withTimeout(
+      updateDoc(doc(this.db, `users/${uid}/projects/${projectId}`), { updatedAt: Date.now() }),
+      'Update project timestamp',
+    );
   }
 
   async deletePage(projectId: string, pageId: string): Promise<void> {
     const uid = this.getUidOrThrow();
-    await deleteDoc(doc(this.db, `users/${uid}/projects/${projectId}/pages/${pageId}`));
-    await updateDoc(doc(this.db, `users/${uid}/projects/${projectId}`), { updatedAt: Date.now() });
+    await this.withTimeout(
+      deleteDoc(doc(this.db, `users/${uid}/projects/${projectId}/pages/${pageId}`)),
+      'Delete page',
+    );
+    await this.withTimeout(
+      updateDoc(doc(this.db, `users/${uid}/projects/${projectId}`), { updatedAt: Date.now() }),
+      'Update project timestamp',
+    );
   }
 
   async duplicatePage(projectId: string, pageId: string): Promise<PageDocument | null> {
@@ -263,5 +311,36 @@ export class FirebaseDataService {
       createdAt: page.createdAt ?? Date.now(),
       updatedAt: page.updatedAt ?? Date.now(),
     };
+  }
+
+  private async withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<T>((_, reject) => {
+          timer = setTimeout(() => {
+            reject(new Error(`${label} timed out. Please try again.`));
+          }, FirebaseDataService.WRITE_TIMEOUT_MS);
+        }),
+      ]);
+    } finally {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    }
+  }
+
+  private async deleteCollectionDocs(path: string): Promise<void> {
+    const snap = await getDocs(collection(this.db, path));
+    const docs = snap.docs;
+    const chunkSize = 400;
+    for (let i = 0; i < docs.length; i += chunkSize) {
+      const batch = writeBatch(this.db);
+      docs.slice(i, i + chunkSize).forEach((docRef) => {
+        batch.delete(docRef.ref);
+      });
+      await this.withTimeout(batch.commit(), 'Delete collection');
+    }
   }
 }

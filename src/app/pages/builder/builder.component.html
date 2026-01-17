@@ -7,6 +7,10 @@
   </div>
   <header class="builder__topbar">
     <div class="topbar__title">
+      <button type="button" class="topbar__back" (click)="goDashboard()" aria-label="Back to dashboard">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Dashboard</span>
+      </button>
       <h2>{{ page.name }}</h2>
       <span>Last updated {{ page.updatedAt | date: 'short' }}</span>
     </div>
@@ -117,11 +121,19 @@
           </button>
         </div>
         <div class="project__create-page">
-          <input [(ngModel)]="newPageName" placeholder="New page name" />
-          <button type="button" (click)="createPageInline()">Add Page</button>
+          <div class="input-field" [class.has-error]="newPageError">
+            <input
+              [(ngModel)]="newPageName"
+              (ngModelChange)="onNewPageNameChange($event)"
+              [class.input-error]="newPageError"
+              placeholder="New page name"
+            />
+            <p class="input-error__text" *ngIf="newPageError">{{ newPageError }}</p>
+          </div>
+          <button type="button" (click)="createPageInline()" [disabled]="isLoading">Add Page</button>
         </div>
         <div class="project__pages">
-          <div class="page" *ngFor="let pageItem of projectPages">
+          <div class="page" *ngFor="let pageItem of projectPages; trackBy: trackByPageId">
             <div>
               <h4>{{ pageItem.name }}</h4>
               <span>Updated {{ pageItem.updatedAt | date: 'short' }}</span>

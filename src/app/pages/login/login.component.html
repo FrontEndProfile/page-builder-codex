@@ -11,11 +11,29 @@
 
     <div class="field">
       <label>Email</label>
-      <input [(ngModel)]="email" type="email" placeholder="you@example.com" />
+      <div class="input-field" [class.field--error]="emailError">
+        <input
+          [(ngModel)]="email"
+          (ngModelChange)="onEmailChange($event)"
+          [class.input-error]="emailError"
+          type="email"
+          placeholder="you@example.com"
+        />
+        <p class="input-error__text" *ngIf="emailError">{{ emailError }}</p>
+      </div>
     </div>
     <div class="field">
       <label>Password</label>
-      <input [(ngModel)]="password" type="password" placeholder="••••••••" />
+      <div class="input-field" [class.field--error]="passwordError">
+        <input
+          [(ngModel)]="password"
+          (ngModelChange)="onPasswordChange($event)"
+          [class.input-error]="passwordError"
+          type="password"
+          placeholder="••••••••"
+        />
+        <p class="input-error__text" *ngIf="passwordError">{{ passwordError }}</p>
+      </div>
     </div>
 
     <div class="actions">

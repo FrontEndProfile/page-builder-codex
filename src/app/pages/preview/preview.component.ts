@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PageDocument } from '../../models/page-schema';
 import { buildHoverStyles } from '../../utils/page-builder-utils';
 import { NodeRendererComponent } from '../../components/node-renderer/node-renderer.component';
-import { FirebaseDataService } from '../../services/firebase-data.service';
+import { PagesService } from '../../services/pages.service';
+import { ProjectsService } from '../../services/projects.service';
 
 @Component({
   selector: 'app-preview',
   standalone: true,
-  imports: [CommonModule, NodeRendererComponent],
+  imports: [CommonModule, NodeRendererComponent, RouterLink],
   templateUrl: './preview.component.html',
   styleUrl: './preview.component.scss',
 })
@@ -19,11 +20,13 @@ export class PreviewComponent implements OnInit {
   viewMode: 'desktop' | 'tablet' | 'mobile' = 'desktop';
   private projectId: string | null = null;
   private pageId: string | null = null;
+  builderUrl: string[] = ['/dashboard'];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private dataService: FirebaseDataService,
+    private pagesService: PagesService,
+    private projectsService: ProjectsService,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -35,7 +38,13 @@ export class PreviewComponent implements OnInit {
     }
     this.projectId = projectId;
     this.pageId = pageId;
-    const page = await this.dataService.getPage(projectId, pageId);
+    this.builderUrl = ['/builder', projectId, pageId];
+    const cachedPage = this.getCachedPage(projectId, pageId);
+    if (cachedPage) {
+      this.page = cachedPage;
+      this.hoverStyles = buildHoverStyles(cachedPage.root);
+    }
+    const page = await this.pagesService.getPage(projectId, pageId);
     if (!page) {
       this.router.navigate(['/dashboard']);
       return;
@@ -50,5 +59,14 @@ export class PreviewComponent implements OnInit {
     } else {
       this.router.navigate(['/dashboard']);
     }
+  }
+
+  private getCachedPage(projectId: string, pageId: string): PageDocument | null {
+    const cached = this.projectsService.getCachedProjects();
+    const project = cached?.find((item) => item.id === projectId);
+    if (!project) {
+      return null;
+    }
+    return project.pages.find((page) => page.id === pageId) ?? null;
   }
 }

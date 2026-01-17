@@ -17,10 +17,18 @@
       </div>
       <button type="button" class="ghost" (click)="logout()">Logout</button>
     </div>
-    <div class="dashboard__hero-card">
-      <label>Project name</label>
-      <input [(ngModel)]="projectName" placeholder="New project name" />
-      <button type="button" (click)="createProject()">Create Project</button>
+      <div class="dashboard__hero-card">
+        <label>Project name</label>
+        <div class="input-field" [class.has-error]="projectNameError">
+          <input
+            [(ngModel)]="projectName"
+            (ngModelChange)="onProjectNameChange($event)"
+            [class.input-error]="projectNameError"
+            placeholder="New project name"
+          />
+          <p class="input-error__text" *ngIf="projectNameError">{{ projectNameError }}</p>
+        </div>
+      <button type="button" (click)="createProject()" [disabled]="actionLoading">Create Project</button>
     </div>
   </header>
 
@@ -28,24 +36,56 @@
     <h2>Projects</h2>
     <p class="project__empty" *ngIf="loading">Loading projects...</p>
     <p class="project__empty" *ngIf="!loading && !projects.length">No projects yet. Create your first project.</p>
-    <div class="project" *ngFor="let project of projects">
+    <div class="project" *ngFor="let project of projects; trackBy: trackByProjectId">
       <div class="project__header">
-        <div>
-          <h3>{{ project.name }}</h3>
+        <div class="project__title">
+          <ng-container *ngIf="editingProjectId === project.id; else projectTitle">
+            <div class="input-field" [class.has-error]="projectEditErrors[project.id]">
+              <input
+                [(ngModel)]="projectNameEdits[project.id]"
+                (ngModelChange)="onProjectEditChange(project.id, $event)"
+                [class.input-error]="projectEditErrors[project.id]"
+                placeholder="Project name"
+              />
+              <p class="input-error__text" *ngIf="projectEditErrors[project.id]">
+                {{ projectEditErrors[project.id] }}
+              </p>
+            </div>
+          </ng-container>
+          <ng-template #projectTitle>
+            <h3>{{ project.name }}</h3>
+          </ng-template>
           <span>{{ project.pages.length }} pages</span>
+        </div>
+        <div class="project__header-actions">
+          <ng-container *ngIf="editingProjectId === project.id; else projectActions">
+            <button type="button" (click)="saveProjectName(project.id)">Save</button>
+            <button type="button" class="ghost" (click)="cancelEditProject()">Cancel</button>
+          </ng-container>
+          <ng-template #projectActions>
+            <button type="button" class="ghost" (click)="startEditProject(project)">Edit</button>
+            <button type="button" class="danger" (click)="deleteProject(project.id)">Delete</button>
+          </ng-template>
         </div>
       </div>
 
       <div class="project__create-page">
-        <input
-          [(ngModel)]="pageNameByProject[project.id]"
-          placeholder="New page name"
-        />
-        <button type="button" (click)="createPage(project.id)">Add Page</button>
+        <div class="input-field" [class.has-error]="pageNameErrors[project.id]">
+          <input
+            [(ngModel)]="pageNameByProject[project.id]"
+            (ngModelChange)="onPageNameChange(project.id, $event)"
+            [class.input-error]="pageNameErrors[project.id]"
+            placeholder="New page name"
+          />
+          <p class="input-error__text" *ngIf="pageNameErrors[project.id]">
+            {{ pageNameErrors[project.id] }}
+          </p>
+        </div>
+        <button type="button" (click)="createPage(project.id)" [disabled]="actionLoading">Add Page</button>
       </div>
 
       <div class="project__pages" *ngIf="project.pages.length; else empty">
-        <div class="page" *ngFor="let page of project.pages">
+        <div class="page" *ngFor="let page of project.pages; trackBy: trackByPageId">
           <div>
             <h4>{{ page.name }}</h4>
             <span>Updated {{ page.updatedAt | date: 'medium' }}</span>

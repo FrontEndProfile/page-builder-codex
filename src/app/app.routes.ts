@@ -1,17 +1,30 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { BuilderComponent } from './pages/builder/builder.component';
-import { PreviewComponent } from './pages/preview/preview.component';
-import { LoginComponent } from './pages/login/login.component';
-import { RegisterComponent } from './pages/register/register.component';
 import { authGuard } from './guards/auth.guard';
 
 export const appRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: 'builder/:projectId/:pageId', component: BuilderComponent, canActivate: [authGuard] },
-  { path: 'preview/:projectId/:pageId', component: PreviewComponent, canActivate: [authGuard] },
+  {
+    path: 'login',
+    loadComponent: () => import('./pages/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./pages/register/register.component').then((m) => m.RegisterComponent),
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'builder/:projectId/:pageId',
+    loadComponent: () => import('./pages/builder/builder.component').then((m) => m.BuilderComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'preview/:projectId/:pageId',
+    loadComponent: () => import('./pages/preview/preview.component').then((m) => m.PreviewComponent),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'dashboard' },
 ];

@@ -212,6 +212,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
 
   projectPages: PageDocument[] = [];
   newPageName = '';
+  newPageError = '';
   showUnsavedModal = false;
   pendingPageId: string | null = null;
   isLoading = false;
@@ -261,6 +262,7 @@ export class BuilderComponent implements OnInit, OnDestroy {
     this.projectId = projectId;
     this.pageId = pageId;
     const loaded = await this.builder.loadPage(projectId, pageId);
+    debugger
     if (!loaded) {
       this.setLoading(false);
       this.router.navigate(['/dashboard']);
@@ -809,6 +811,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
     window.open(url, '_blank', 'noopener');
   }
 
+  async goDashboard(): Promise<void> {
+    await this.router.navigate(['/dashboard']);
+  }
+
   deleteSelected(): void {
     if (!this.selectedNode || !this.page) {
       return;
@@ -1140,15 +1146,47 @@ export class BuilderComponent implements OnInit, OnDestroy {
   }
 
   async createPageInline(): Promise<void> {
-    if (!this.projectId || !this.newPageName.trim()) {
+    if (this.isLoading) {
       return;
     }
+    if (!this.projectId) {
+      return;
+    }
+    if (!this.newPageName.trim()) {
+      this.newPageError = 'Page name is required.';
+      this.toast.show('Page name is required.', 'error');
+      return;
+    }
+    if (
+      this.projectPages.some(
+        (page) => page.name.trim().toLowerCase() === this.newPageName.trim().toLowerCase(),
+      )
+    ) {
+      this.newPageError = 'Page name already exists.';
+      this.toast.show('Page name already exists.', 'error');
+      return;
+    }
+    this.newPageError = '';
     this.setLoading(true, 'Creating page...');
     const page = createPageDocument(this.newPageName.trim());
-    await this.dataService.addPage(this.projectId, page);
-    this.newPageName = '';
-    await this.loadProjectPages();
-    this.setLoading(false);
+    try {
+      await this.dataService.addPage(this.projectId, page);
+      this.newPageName = '';
+      if (!this.projectPages.find((item) => item.id === page.id)) {
+        this.projectPages = [...this.projectPages, page];
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create page.';
+      this.toast.show(message, 'error');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
+  onNewPageNameChange(value: string): void {
+    if (value.trim()) {
+      this.newPageError = '';
+    }
   }
 
   async openPage(pageId: string): Promise<void> {
@@ -1297,6 +1335,10 @@ export class BuilderComponent implements OnInit, OnDestroy {
     if (message) {
       this.loadingMessage = message;
     }
+  }
+
+  trackByPageId(_: number, page: { id: string }): string {
+    return page.id;
   }
 
   getHoverStyles(): string {
