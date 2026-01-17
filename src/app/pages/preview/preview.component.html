@@ -1,5 +1,5 @@
-<div class="preview" *ngIf="page">
-  <style>{{ hoverStyles }}</style>
+<div class="preview">
+  <style *ngIf="hoverStyles">{{ hoverStyles }}</style>
   <header class="preview__topbar">
     <div class="preview__title">
       <a class="ghost" [routerLink]="builderUrl">Back to Builder</a>
@@ -18,12 +18,21 @@
       [class.preview__frame--mobile]="viewMode === 'mobile'"
       [class.preview__frame--desktop]="viewMode === 'desktop'"
       [ngStyle]="{
-        background: page.settings.baseBg,
-        color: page.settings.baseTextColor,
-        fontFamily: page.settings.primaryFont
+        background: page?.settings?.baseBg || '#ffffff',
+        color: page?.settings?.baseTextColor || '#0f172a',
+        fontFamily: page?.settings?.primaryFont || 'system-ui, sans-serif'
       }"
     >
-      <app-node-renderer [node]="page.root" [preview]="true" [viewport]="viewMode"></app-node-renderer>
+      <div class="preview__loading" *ngIf="loading && !page">Loading preview...</div>
+      <div class="preview__empty" *ngIf="!loading && page && !hasContent">
+        No content yet. Add blocks in the builder.
+      </div>
+      <app-node-renderer
+        *ngIf="!loading && page && hasContent"
+        [node]="page.root"
+        [preview]="true"
+        [viewport]="viewMode"
+      ></app-node-renderer>
     </div>
   </div>
 </div>

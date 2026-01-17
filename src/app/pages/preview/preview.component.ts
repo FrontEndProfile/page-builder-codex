@@ -17,6 +17,7 @@ import { ProjectsService } from '../../services/projects.service';
 export class PreviewComponent implements OnInit {
   page: PageDocument | null = null;
   hoverStyles = '';
+  loading = true;
   viewMode: 'desktop' | 'tablet' | 'mobile' = 'desktop';
   private projectId: string | null = null;
   private pageId: string | null = null;
@@ -39,18 +40,23 @@ export class PreviewComponent implements OnInit {
     this.projectId = projectId;
     this.pageId = pageId;
     this.builderUrl = ['/builder', projectId, pageId];
+    this.loading = true;
     const cachedPage = this.getCachedPage(projectId, pageId);
     if (cachedPage) {
       this.page = cachedPage;
       this.hoverStyles = buildHoverStyles(cachedPage.root);
     }
-    const page = await this.pagesService.getPage(projectId, pageId);
-    if (!page) {
-      this.router.navigate(['/dashboard']);
-      return;
+    try {
+      const page = await this.pagesService.getPage(projectId, pageId);
+      if (!page) {
+        this.router.navigate(['/dashboard']);
+        return;
+      }
+      this.page = page;
+      this.hoverStyles = buildHoverStyles(page.root);
+    } finally {
+      this.loading = false;
     }
-    this.page = page;
-    this.hoverStyles = buildHoverStyles(page.root);
   }
 
   goBack(): void {
@@ -68,5 +74,9 @@ export class PreviewComponent implements OnInit {
       return null;
     }
     return project.pages.find((page) => page.id === pageId) ?? null;
+  }
+
+  get hasContent(): boolean {
+    return Boolean(this.page?.root?.children?.length);
   }
 }
